@@ -1,0 +1,10 @@
+# Packages 
+__pycache__
+
+
+# Environment variables 
+# .flaskenv
+.env
+
+venv
+
