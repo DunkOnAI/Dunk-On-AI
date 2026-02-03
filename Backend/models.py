@@ -126,7 +126,7 @@ class Team(db.Model):
     # Team -> Players (1-many)
     players: so.Mapped[List["Player"]] = so.relationship(
         back_populates="team",
-        cascade="all, delete-orphan",
+        cascade="save-update, merge",
         passive_deletes=True,
     )
 
