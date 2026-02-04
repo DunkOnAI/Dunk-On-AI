@@ -31,7 +31,9 @@ def create_app(config_class=Config):
     # Move the import to the very end to avoid circular import issues
     from Backend import models
     from Backend.routes import bp as api_bp
+    from Backend.roster_routes import bp as roster_bp
 
     app.register_blueprint(api_bp)
+    app.register_blueprint(roster_bp)
 
     return app
