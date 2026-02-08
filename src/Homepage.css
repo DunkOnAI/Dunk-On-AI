@@ -1,0 +1,160 @@
+/* Reset default browser styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Arial', sans-serif;
+}
+
+/* Full-screen container - Background image adaptation */
+.homepage-container {
+  width: 100vw;
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Core logo styles: Proportional scaling to normal size (80px width) */
+.logo-img {
+  /* Max width limited to 80px (normal logo size), height scales proportionally automatically */
+  max-width: 80px;
+  height: auto; /* Key: Ensure aspect ratio remains unchanged to avoid distortion */
+  margin-bottom: 12px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Login card styles */
+.login-card {
+  width: 440px;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 22px;
+  padding: 40px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  border: 2px solid #fff;
+  z-index: 2;
+}
+
+/* App title styles */
+.app-title {
+  font-size: 25px;
+  font-weight: 700;
+  color: #121826;
+  margin-bottom: 6px;
+}
+
+/* Input box styles */
+.input-box {
+  width: 92%;
+  height: 47px;
+  border: 1px solid #e2e8f0;
+  border-radius: 13px;
+  padding: 0 17px;
+  font-size: 15px;
+  background: #fafbfc;
+  outline: none;
+}
+/* Input box focus state */
+.input-box:focus {
+  border-color: #3b82f6;
+}
+
+/* Login button styles */
+.login-btn {
+  width: 92%;
+  height: 50px;
+  border: none;
+  border-radius: 13px;
+  background-color: #f97316;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
+}
+/* Login button hover state */
+.login-btn:hover {
+  opacity: 0.92;
+}
+
+/* Functional links group styles */
+.link-group {
+  display: flex;
+  gap: 28px;
+  margin-top: 4px;
+}
+.link-group a {
+  color: #1e40af;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+/* Navigation bar styles */
+.nav-bar {
+  width: 540px;
+  height: 52px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 32px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 2;
+}
+/* Nav bar item hover effect */
+.nav-bar span {
+  cursor: pointer;
+}
+
+/* Notification card styles */
+.notice-card {
+  width: 540px;
+  background: rgba(255, 255, 255, 0.93);
+  border-radius: 17px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  z-index: 2;
+}
+/* Notification text styles */
+.notice-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Bottom tab bar styles */
+.bottom-tab {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 13px;
+}
+/* Tab text styles */
+.tab-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b5563;
+}
