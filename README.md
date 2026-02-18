@@ -11,6 +11,15 @@ Backend:
 3. `pip install -r Backend\\requirements.txt`
 4. `flask --app Fantasy_Basketball.py run`
 
+Supabase backend config:
+
+1. Create/update `.env` in repo root with:
+```env
+SUPABASE_URL=https://<your-project-ref>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
+```
+2. Keep `.env` and `.flaskenv` out of git (already in `.gitignore`).
+
 Frontend:
 
 1. `cd Frontend`
@@ -25,9 +34,11 @@ Base URL: `http://127.0.0.1:5000/api`
 
 Health:
 1. `GET /health` -> `{ "status": "ok" }`
+2. `GET /supabase/health` -> verifies Supabase client/env wiring
 
 Roster:
-1. `GET /users/<user_id>/roster` -> List roster (optional `?role=starter|bench`)
+1. `GET /users/<user_id>/roster` -> List roster (optional `?role=starter|bench`)  
+   Current implementation reads from Supabase via `Backend/supabaseclient.py`
 2. `POST /users/<user_id>/roster` -> Add player  
    Body: `{ "player_id": 123, "role": "starter|bench" }`
 3. `DELETE /users/<user_id>/roster/<player_id>` -> Remove player
@@ -55,3 +66,9 @@ app.register_blueprint(roster_bp)
 ```
 
 When you add new route modules, define a `Blueprint` in that module and register it in `create_app`.
+
+## Notes on data path
+
+Current hybrid setup:
+1. `GET /api/users/<user_id>/roster` uses Supabase client.
+2. Other roster write routes currently still use SQLAlchemy models/session.
