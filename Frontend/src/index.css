@@ -159,6 +159,14 @@
   letter-spacing: 1px;
 }
 
+.auth-subtitle {
+  margin-top: -20px;
+  margin-bottom: 30px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
 .login-form {
   display: flex;
   flex-direction: column;
@@ -223,6 +231,13 @@
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.link-button {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
 .forgot-password,
 .sign-up {
   font-size: 1rem;
@@ -243,6 +258,25 @@
 .sign-up:hover {
   color: var(--accent-cyan);
   text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+}
+
+.auth-hint {
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.auth-feedback {
+  margin-top: 4px;
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.auth-feedback.error {
+  color: #ff8f8f;
+}
+
+.auth-feedback.info {
+  color: #8be5ff;
 }
 
 .data-viz {

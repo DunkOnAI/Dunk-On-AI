@@ -32,8 +32,10 @@ def create_app(config_class=Config):
     from Backend import models
     from Backend.routes import bp as api_bp
     from Backend.roster_routes import bp as roster_bp
+    from Backend.auth_routes import bp as auth_bp
 
     app.register_blueprint(api_bp)
     app.register_blueprint(roster_bp)
+    app.register_blueprint(auth_bp)
 
     return app

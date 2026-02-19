@@ -71,6 +71,7 @@ class User(db.Model):
     __tablename__ = "users" #table name
 
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    supabase_auth_id: so.Mapped[Optional[str]] = so.mapped_column(String(36), unique=True, nullable=True, index=True)
     username: so.Mapped[str] = so.mapped_column(String(80), unique=True, nullable=False, index=True)
     email: so.Mapped[str] = so.mapped_column(String(120), unique=True, nullable=False, index=True)
     password_hash: so.Mapped[str] = so.mapped_column(String(200), nullable=False)
