@@ -1,83 +1,177 @@
-# Fantasy Basketball Predictor
+# Dunk On AI — Fantasy Basketball App
 
-### Right now - Database created
+A fantasy basketball web app where users build a team and compete against AI opponents.
 
-## Dev setup (Flask + React Vite)
+## Tech Stack
 
-Backend:
+| Layer    | Technology                              |
+| -------- | --------------------------------------- |
+| Frontend | React 18 + Vite + Framer Motion         |
+| Backend  | Python + Flask                          |
+| Auth     | Supabase Auth (email/password)          |
+| Database | Supabase (PostgreSQL via PostgREST API) |
 
-1. `python -m venv venv`
-2. `venv\\Scripts\\activate`
-3. `pip install -r Backend\\requirements.txt`
-4. `flask --app Fantasy_Basketball.py run`
+All database access goes through the **Supabase PostgREST HTTP API** — no raw database connection string is needed.
 
-Supabase backend config:
+---
 
-1. Create/update `.env` in repo root with:
+## Dev Setup
+
+### 1. Environment Variables
+
+Create a `.env` file in the repo root:
+
 ```env
 SUPABASE_URL=https://<your-project-ref>.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
 ```
-2. Keep `.env` and `.flaskenv` out of git (already in `.gitignore`).
 
-Frontend:
+Keep `.env` out of git — it's already in `.gitignore`.
 
-1. `cd Frontend`
-2. `npm install`
-3. `npm run dev`
+### 2. Backend (Flask)
 
-The Vite dev server proxies `/api` requests to Flask on `http://127.0.0.1:5000`.
+```bash
+python -m venv venv
+venv\Scripts\activate
+pip install -r Backend\requirements.txt
+flask --app "Backend:create_app" run --debug
+```
 
-## Backend API routes
+Flask starts on `http://127.0.0.1:5000`.
+
+### 3. Frontend (React + Vite)
+
+```bash
+cd Frontend
+npm install
+npm run dev
+```
+
+Vite starts on `http://localhost:5173` and proxies all `/api/*` requests to Flask automatically.
+
+---
+
+## API Reference
 
 Base URL: `http://127.0.0.1:5000/api`
 
-Health:
-1. `GET /health` -> `{ "status": "ok" }`
-2. `GET /supabase/health` -> verifies Supabase client/env wiring
+### Health
 
-Auth:
-1. `POST /auth/signup` -> creates Supabase auth user and local app user mapping  
-   Body: `{ "email": "user@example.com", "password": "strong-password", "username": "optional_name" }`
-2. `POST /auth/login` -> signs in with Supabase Auth and returns local app user mapping  
-   Body: `{ "email": "user@example.com", "password": "strong-password" }`
+| Method | Endpoint           | Description                               |
+| ------ | ------------------ | ----------------------------------------- |
+| GET    | `/health`          | Returns `{ "status": "ok" }`              |
+| GET    | `/supabase/health` | Verifies Supabase connection and env vars |
 
-Roster:
-1. `GET /users/<user_id>/roster` -> List roster (optional `?role=starter|bench`)
-2. `POST /users/<user_id>/roster` -> Add player  
-   Body: `{ "player_id": 123, "role": "starter|bench" }`
-3. `DELETE /users/<user_id>/roster/<player_id>` -> Remove player
-4. `PATCH /users/<user_id>/roster/<player_id>` -> Update role  
-   Body: `{ "role": "starter|bench" }`
-5. `POST /users/<user_id>/roster/swap` -> Swap two players  
-   Body: `{ "player_1_id": 1, "player_2_id": 2 }`
-6. `DELETE /users/<user_id>/roster?confirm=true` -> Clear roster
-7. `POST /users/<user_id>/roster/bulk` -> Bulk add players  
-   Body: `{ "players": [{ "player_id": 1, "role": "starter" }, { "player_id": 2 }] }`
+### Auth
 
-## Connecting all backend routes
+| Method | Endpoint       | Description             |
+| ------ | -------------- | ----------------------- |
+| POST   | `/auth/signup` | Register a new user     |
+| POST   | `/auth/login`  | Log in an existing user |
 
-Blueprints must be registered in `Backend/__init__.py` to be active. At minimum:
-1. `Backend/routes.py` (health)
-2. `Backend/roster_routes.py` (roster endpoints)
-3. `Backend/auth_routes.py` (auth endpoints)
+**Signup body:**
 
-Example snippet (already the pattern we use):
-```python
-from Backend.routes import bp as api_bp
-from Backend.roster_routes import bp as roster_bp
-from Backend.auth_routes import bp as auth_bp
-
-app.register_blueprint(api_bp)
-app.register_blueprint(roster_bp)
-app.register_blueprint(auth_bp)
+```json
+{
+  "email": "user@example.com",
+  "password": "mypassword",
+  "username": "optional"
+}
 ```
 
-When you add new route modules, define a `Blueprint` in that module and register it in `create_app`.
+**Login body:**
 
-## Notes on data path
+```json
+{ "email": "user@example.com", "password": "mypassword" }
+```
 
-Current hybrid setup:
-1. Auth endpoints use Supabase client and map users into local SQLAlchemy `users`.
-2. Roster endpoints currently use SQLAlchemy models/session.
-3. User model now includes `supabase_auth_id` for Supabase Auth linkage.
+**Both return:**
+
+```json
+{
+  "user": {
+    "id": 1,
+    "email": "...",
+    "username": "...",
+    "supabase_auth_id": "..."
+  },
+  "auth": { "access_token": "...", "refresh_token": "...", "expires_at": 0 }
+}
+```
+
+### Roster
+
+All roster endpoints are scoped to a user via `<user_id>` (the `id` from the users table).
+
+| Method | Endpoint                               | Description                                  |
+| ------ | -------------------------------------- | -------------------------------------------- |
+| GET    | `/users/<user_id>/roster`              | Get roster (optional `?role=starter\|bench`) |
+| POST   | `/users/<user_id>/roster`              | Add a player                                 |
+| DELETE | `/users/<user_id>/roster/<player_id>`  | Remove a player                              |
+| PATCH  | `/users/<user_id>/roster/<player_id>`  | Update a player's role                       |
+| POST   | `/users/<user_id>/roster/swap`         | Swap roles between two players               |
+| DELETE | `/users/<user_id>/roster?confirm=true` | Clear entire roster                          |
+| POST   | `/users/<user_id>/roster/bulk`         | Add multiple players at once                 |
+
+**Add player body:**
+
+```json
+{ "player_id": 123, "role": "starter" }
+```
+
+**Update role body:**
+
+```json
+{ "role": "bench" }
+```
+
+**Swap body:**
+
+```json
+{ "player_1_id": 1, "player_2_id": 2 }
+```
+
+**Bulk add body:**
+
+```json
+{ "players": [{ "player_id": 1, "role": "starter" }, { "player_id": 2 }] }
+```
+
+**Roster constraints:** max 15 players total, max 5 starters.
+
+---
+
+## Project Structure
+
+```
+Basketball-Fantasy-Helper/
+├── Backend/
+│   ├── __init__.py          # Flask app factory, blueprint registration
+│   ├── auth_routes.py       # POST /api/auth/signup, /api/auth/login
+│   ├── roster_routes.py     # Roster CRUD endpoints
+│   ├── routes.py            # Health check endpoints
+│   ├── models.py            # SQLAlchemy models (schema reference, not used for queries)
+│   ├── supabaseclient.py    # Cached Supabase client (reads SUPABASE_URL + KEY from env)
+│   ├── constants.py         # Roster limits, error codes, valid roles
+│   └── utils/
+│       ├── validators.py    # Input validation and existence checks via Supabase API
+│       ├── serializers.py   # Convert Supabase dicts to API response format
+│       └── errors.py        # Standardized error response helpers
+├── Frontend/
+│   ├── src/
+│   │   ├── App.jsx          # All React components and routing
+│   │   └── index.css        # All styles
+│   ├── vite.config.js       # Dev server + /api proxy to Flask
+│   └── package.json
+├── .env                     # Supabase credentials (never commit this)
+└── README.md
+```
+
+---
+
+## Adding New Routes
+
+1. Create a new file e.g. `Backend/matchup_routes.py` with a `Blueprint`
+2. Register it in `Backend/__init__.py` inside `create_app`
+3. Get the Supabase client at the top of each endpoint with `client = get_supabase_client()`
+4. Use `client.table("your_table").select/insert/update/delete(...)` for all DB access

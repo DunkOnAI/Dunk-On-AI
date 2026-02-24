@@ -6,9 +6,7 @@ import re
 
 from flask import Blueprint, current_app, jsonify, request
 
-from Backend import db
 from Backend.constants import ErrorCodes
-from Backend.models import User
 from Backend.supabaseclient import SupabaseConfigError, get_supabase_client
 from Backend.utils.errors import bad_request, internal_server_error
 
@@ -16,6 +14,32 @@ bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
 AUTH_MANAGED_PASSWORD_HASH = "SUPABASE_AUTH_MANAGED"
 MIN_PASSWORD_LENGTH = 8
+
+
+def _is_debug_mode():
+    """Return True when Flask debug mode is enabled."""
+    return bool(current_app.debug)
+
+
+def _exception_debug_details(exc):
+    """
+    Build a JSON-safe debug payload from an exception.
+    """
+    details = {
+        "type": type(exc).__name__,
+        "message": str(exc),
+    }
+
+    for attr in ("code", "status", "status_code", "name"):
+        value = getattr(exc, attr, None)
+        if value is not None:
+            details[attr] = value
+
+    if getattr(exc, "args", None):
+        details["args"] = [str(arg) for arg in exc.args]
+
+    return details
+
 
 # This helper function abstracts away differences in how Supabase client responses may be structured (dict vs object).
 def _extract_attr(value, key):
@@ -35,10 +59,19 @@ def _normalize_username(raw_username, email):
 
 
 # This function appends numeric suffixes to the base username until it finds a unique one.
-def _unique_username(base_username):
+def _unique_username(client, base_username):
     candidate = base_username
     suffix = 1
-    while User.query.filter_by(username=candidate).first():
+    while True:
+        result = (
+            client.table("users")
+            .select("id")
+            .eq("username", candidate)
+            .limit(1)
+            .execute()
+        )
+        if not result.data:
+            break
         suffix_text = f"_{suffix}"
         candidate = f"{base_username[:80 - len(suffix_text)]}{suffix_text}"
         suffix += 1
@@ -46,36 +79,49 @@ def _unique_username(base_username):
 
 
 # This function ensures that for every authenticated Supabase user, there is a corresponding local User record in our database.
-def _ensure_local_user(auth_user_id, email, preferred_username=None):
+def _ensure_local_user(client, auth_user_id, email, preferred_username=None):
     """
-    Keep a local SQLAlchemy User record mapped to the Supabase auth user.
+    Keep a local users table record mapped to the Supabase auth user.
+    Uses the Supabase PostgREST API instead of SQLAlchemy.
     """
-    user = (
-        User.query.filter(
-            (User.supabase_auth_id == auth_user_id) | (User.email == email)
-        ).first()
+    # Look up by supabase_auth_id OR email
+    result = (
+        client.table("users")
+        .select("*")
+        .or_(f"supabase_auth_id.eq.{auth_user_id},email.eq.{email}")
+        .limit(1)
+        .execute()
     )
-    if user:
-        changed = False
-        if not user.supabase_auth_id:
-            user.supabase_auth_id = auth_user_id
-            changed = True
-        if changed:
-            db.session.commit()
+
+    if result.data:
+        user = result.data[0]
+        # Backfill supabase_auth_id if it was missing
+        if not user.get("supabase_auth_id"):
+            update_result = (
+                client.table("users")
+                .update({"supabase_auth_id": auth_user_id})
+                .eq("id", user["id"])
+                .execute()
+            )
+            if update_result.data:
+                user = update_result.data[0]
         return user
 
-    # Generate a unique username based on the preferred username or email
-    username = _unique_username(_normalize_username(preferred_username, email))
-    user = User(
-        username=username,
-        email=email,
-        password_hash=AUTH_MANAGED_PASSWORD_HASH,
-        supabase_auth_id=auth_user_id,
+    # Create a new local user record
+    username = _unique_username(client, _normalize_username(preferred_username, email))
+    insert_result = (
+        client.table("users")
+        .insert(
+            {
+                "username": username,
+                "email": email,
+                "password_hash": AUTH_MANAGED_PASSWORD_HASH,
+                "supabase_auth_id": auth_user_id,
+            }
+        )
+        .execute()
     )
-    db.session.add(user)
-    db.session.commit()
-    db.session.refresh(user)
-    return user
+    return insert_result.data[0]
 
 
 @bp.post("/signup")
@@ -125,7 +171,7 @@ def signup():
             )
 
         # Ensure there is a corresponding local User record for this Supabase auth user, creating one if necessary
-        local_user = _ensure_local_user(str(auth_user_id), auth_email, username)
+        local_user = _ensure_local_user(client, str(auth_user_id), auth_email, username)
         # Extract the session information from the Supabase auth response to return access and refresh tokens
         session = _extract_attr(auth_response, "session")
 
@@ -133,10 +179,10 @@ def signup():
             {
                 "message": "Signup successful",
                 "user": {
-                    "id": local_user.id,
-                    "email": local_user.email,
-                    "username": local_user.username,
-                    "supabase_auth_id": local_user.supabase_auth_id,
+                    "id": local_user["id"],
+                    "email": local_user["email"],
+                    "username": local_user["username"],
+                    "supabase_auth_id": local_user["supabase_auth_id"],
                 },
                 "auth": {
                     "access_token": _extract_attr(session, "access_token"),
@@ -199,7 +245,6 @@ def login():
                 }
             ), 401
 
-        
         auth_user_id = _extract_attr(auth_user, "id")
         auth_email = _extract_attr(auth_user, "email") or email
         if not auth_user_id:
@@ -208,17 +253,17 @@ def login():
                 "Supabase login returned no user ID.",
             )
 
-        local_user = _ensure_local_user(str(auth_user_id), auth_email)
+        local_user = _ensure_local_user(client, str(auth_user_id), auth_email)
         session = _extract_attr(auth_response, "session")
 
         return jsonify(
             {
                 "message": "Login successful",
                 "user": {
-                    "id": local_user.id,
-                    "email": local_user.email,
-                    "username": local_user.username,
-                    "supabase_auth_id": local_user.supabase_auth_id,
+                    "id": local_user["id"],
+                    "email": local_user["email"],
+                    "username": local_user["username"],
+                    "supabase_auth_id": local_user["supabase_auth_id"],
                 },
                 "auth": {
                     "access_token": _extract_attr(session, "access_token"),
@@ -230,12 +275,31 @@ def login():
 
     except SupabaseConfigError as exc:
         return internal_server_error(ErrorCodes.DATABASE_ERROR, str(exc))
-    except Exception:
-        return jsonify(
-            {
-                "error": {
-                    "code": ErrorCodes.INVALID_REQUEST,
-                    "message": "Invalid email or password.",
-                }
-            }
-        ), 401
+    except Exception as exc:
+        current_app.logger.exception("Login request failed for email=%s", email)
+
+        raw_message = str(exc) or "Login request failed."
+        normalized = raw_message.lower()
+
+        if "email not confirmed" in normalized:
+            user_message = "Email not confirmed. Check your inbox and confirm your account."
+            status_code = 401
+        elif "invalid login credentials" in normalized:
+            user_message = "Invalid email or password."
+            status_code = 401
+        elif "rate limit" in normalized:
+            user_message = "Too many auth attempts. Please wait and try again."
+            status_code = 429
+        else:
+            user_message = "Login request failed."
+            status_code = 401
+
+        error_payload = {
+            "code": ErrorCodes.INVALID_REQUEST,
+            "message": user_message,
+        }
+
+        if _is_debug_mode():
+            error_payload["debug"] = _exception_debug_details(exc)
+
+        return jsonify({"error": error_payload}), status_code

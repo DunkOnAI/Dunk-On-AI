@@ -15,6 +15,21 @@ const parseApiPayload = async (response) => {
   }
 };
 
+const getApiErrorMessage = (payload, fallbackMessage) => {
+  const baseMessage = payload?.error?.message || payload?.raw || fallbackMessage;
+  const debugDetails = payload?.error?.debug;
+
+  if (!debugDetails) {
+    return baseMessage;
+  }
+
+  const debugMessage = typeof debugDetails === 'string'
+    ? debugDetails
+    : debugDetails.message || JSON.stringify(debugDetails);
+
+  return `${baseMessage} (${debugMessage})`;
+};
+
 // Reusable animated auth screen wrapper for both login and signup.
 const AuthScene = ({ title, subtitle, children }) => (
   <div className="login-page">
@@ -119,7 +134,7 @@ const LoginPage = ({ onLogin, onGoToSignup }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (event) => {
-    event.preventDefault(); // Prevent form submission from refreshing the page.
+    event.preventDefault();
     if (!email || !password) {
       return;
     }
@@ -127,7 +142,6 @@ const LoginPage = ({ onLogin, onGoToSignup }) => {
     setAuthError('');
     setIsSubmitting(true);
 
-    // Login request to backend auth endpoint.
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -137,20 +151,17 @@ const LoginPage = ({ onLogin, onGoToSignup }) => {
       const payload = await parseApiPayload(response);
 
       if (!response.ok) {
-        throw new Error(payload?.error?.message || payload?.raw || `Login failed (${response.status})`);
+        throw new Error(getApiErrorMessage(payload, `Login failed (${response.status})`));
       }
 
-      // Pass auth payload back to App state.
       onLogin(payload);
     } catch (error) {
       setAuthError(error.message || 'Login failed.');
     } finally {
-      // Re-enable submit button after request completes.
       setIsSubmitting(false);
     }
   };
 
-  // Render the login form with animated inputs and buttons, and display any authentication errors.
   return (
     <AuthScene title="Fantasy Basketball App" subtitle="Log in to continue">
       <form onSubmit={handleSubmit} className="login-form">
@@ -215,7 +226,7 @@ const SignupPage = ({ onSignup, onGoToLogin }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (event) => {
-    event.preventDefault(); // Prevent form submission from refreshing the page.
+    event.preventDefault();
 
     if (!email || !password || !confirmPassword) {
       setAuthError('Email, password, and confirm password are required.');
@@ -231,7 +242,6 @@ const SignupPage = ({ onSignup, onGoToLogin }) => {
     setAuthInfo('');
     setIsSubmitting(true);
 
-    // Signup request to backend auth endpoint.
     try {
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
@@ -245,16 +255,14 @@ const SignupPage = ({ onSignup, onGoToLogin }) => {
       const payload = await parseApiPayload(response);
 
       if (!response.ok) {
-        throw new Error(payload?.error?.message || payload?.raw || `Signup failed (${response.status})`);
+        throw new Error(getApiErrorMessage(payload, `Signup failed (${response.status})`));
       }
 
-      // If signup includes a session token, log in immediately.
       if (payload?.auth?.access_token) {
         onSignup(payload);
         return;
       }
 
-      // Otherwise, show informational message about checking email for confirmation.
       setAuthInfo('Signup successful. Check your email, then log in.');
     } catch (error) {
       setAuthError(error.message || 'Signup failed.');
@@ -263,7 +271,6 @@ const SignupPage = ({ onSignup, onGoToLogin }) => {
     }
   };
 
-  // Render the signup form with animated inputs and buttons, and display any authentication errors or info messages.
   return (
     <AuthScene title="Create Account" subtitle="Set up your fantasy profile">
       <form onSubmit={handleSubmit} className="login-form">
@@ -340,15 +347,49 @@ const SignupPage = ({ onSignup, onGoToLogin }) => {
   );
 };
 
-// Main home page after logging in, with tabs for different sections and a settings/logout button.
-const HomePage = ({ authUser, onLogout, onSettings }) => {
-  const [activeTab, setActiveTab] = useState('home');
-  const tabs = ['Home', 'Teams', 'Players', 'Stats', 'News'];
-
-  const games = [
-    { id: 1, time: '7:30 PM', team1: 'Lakers', team2: 'Warriors', logo1: '🏀', logo2: '⚡' },
-    { id: 2, time: '8:00 PM', team1: 'Celtics', team2: 'Heat', logo1: '🍀', logo2: '🔥' },
+// Enhanced home page with performance stats, upcoming games, and CTA.
+const HomePage = ({ authUser, onLogout, onSettings, onNavigate }) => {
+  const upcomingGames = [
+    {
+      id: 1,
+      date: 'Today, 7:30 PM',
+      userTeam: 'Your Team',
+      aiTeam: 'AI Warriors',
+      userScore: 105,
+      aiScore: 112,
+      status: 'Live',
+      quarter: 'Q4',
+    },
+    {
+      id: 2,
+      date: 'Tomorrow, 8:00 PM',
+      userTeam: 'Your Team',
+      aiTeam: 'AI Champions',
+      userScore: null,
+      aiScore: null,
+      status: 'Upcoming',
+      quarter: null,
+    },
+    {
+      id: 3,
+      date: 'Feb 17, 6:00 PM',
+      userTeam: 'Your Team',
+      aiTeam: 'AI Legends',
+      userScore: null,
+      aiScore: null,
+      status: 'Upcoming',
+      quarter: null,
+    },
   ];
+
+  const userStats = {
+    wins: 15,
+    losses: 8,
+    winRate: 65.2,
+    totalPoints: 2547,
+    avgPoints: 110.7,
+    ranking: 3,
+  };
 
   return (
     <div className="home-page">
@@ -356,92 +397,384 @@ const HomePage = ({ authUser, onLogout, onSettings }) => {
         <div className="circuit-pattern"></div>
       </div>
 
-      <nav className="top-nav">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            className={`nav-tab ${activeTab === tab.toLowerCase() ? 'active' : ''}`}
-            onClick={() => setActiveTab(tab.toLowerCase())}
-          >
-            {tab}
-          </button>
-        ))}
-      </nav>
+      <header className="page-header">
+        <div className="header-content">
+          <h1 className="page-logo">DUNK ON AI</h1>
+          <div className="header-actions">
+            <button className="icon-btn" onClick={onSettings}>⚙️</button>
+          </div>
+        </div>
+      </header>
 
       <main className="main-content">
-        {authUser ? <p>Signed in as {authUser.email}</p> : null}
-        <div className="section">
-          <h2 className="section-title">Upcoming Games</h2>
-          <div className="games-grid">
-            {games.map((game, index) => (
+        {authUser ? <p className="signed-in-label">Signed in as {authUser.email}</p> : null}
+
+        {/* Performance Section */}
+        <section className="performance-section">
+          <div className="section-header">
+            <h2 className="section-title">Your Performance</h2>
+            <button className="view-all-btn" onClick={() => onNavigate('stats')}>
+              View Details →
+            </button>
+          </div>
+
+          <div className="stats-grid-large">
+            <motion.div
+              className="stat-card-large"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <div className="stat-icon-large">🏆</div>
+              <div className="stat-content-large">
+                <div className="stat-value-large">{userStats.wins}-{userStats.losses}</div>
+                <div className="stat-label-large">Win-Loss Record</div>
+                <div className="stat-extra">{userStats.winRate}% Win Rate</div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="stat-card-large"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="stat-icon-large">📊</div>
+              <div className="stat-content-large">
+                <div className="stat-value-large">{userStats.avgPoints}</div>
+                <div className="stat-label-large">Avg Points/Game</div>
+                <div className="stat-extra">{userStats.totalPoints} Total</div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="stat-card-large"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <div className="stat-icon-large">🎯</div>
+              <div className="stat-content-large">
+                <div className="stat-value-large">#{userStats.ranking}</div>
+                <div className="stat-label-large">Global Ranking</div>
+                <div className="stat-extra">Top 1% Players</div>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Upcoming Games Section */}
+        <section className="games-section">
+          <div className="section-header">
+            <h2 className="section-title">Upcoming Games</h2>
+            <button className="view-all-btn">Schedule →</button>
+          </div>
+
+          <div className="games-list">
+            {upcomingGames.map((game, index) => (
               <motion.div
                 key={game.id}
-                className="game-card"
+                className={`game-card-enhanced ${game.status === 'Live' ? 'live' : ''}`}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ scale: 1.02 }}
+              >
+                {game.status === 'Live' && (
+                  <div className="live-indicator">
+                    <span className="live-dot"></span>
+                    LIVE
+                  </div>
+                )}
+
+                <div className="game-info">
+                  <div className="game-date">{game.date}</div>
+                  {game.quarter && <div className="game-quarter">{game.quarter}</div>}
+                </div>
+
+                <div className="game-matchup-enhanced">
+                  <div className="team-section">
+                    <div className="team-avatar user-avatar">
+                      <span>👤</span>
+                    </div>
+                    <div className="team-details">
+                      <div className="team-name">{game.userTeam}</div>
+                      <div className="team-label">YOU</div>
+                    </div>
+                    {game.userScore !== null && (
+                      <div className="team-score">{game.userScore}</div>
+                    )}
+                  </div>
+
+                  <div className="vs-divider">VS</div>
+
+                  <div className="team-section">
+                    {game.aiScore !== null && (
+                      <div className="team-score">{game.aiScore}</div>
+                    )}
+                    <div className="team-details">
+                      <div className="team-name">{game.aiTeam}</div>
+                      <div className="team-label ai-label">AI</div>
+                    </div>
+                    <div className="team-avatar ai-avatar">
+                      <span>🤖</span>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  className="game-action-btn"
+                  onClick={() => onNavigate('stats')}
+                >
+                  {game.status === 'Live' ? 'Watch Live' : 'View Matchup'}
+                </button>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* Build Team CTA */}
+        <motion.section
+          className="cta-section"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <div className="cta-content">
+            <h3 className="cta-title">Build Your Dream Team</h3>
+            <p className="cta-text">Select top players and challenge AI opponents</p>
+            <button className="cta-btn" onClick={() => onNavigate('stats')}>
+              View Stats →
+            </button>
+          </div>
+        </motion.section>
+      </main>
+
+      {/* Bottom Navigation */}
+      <nav className="bottom-nav">
+        <button className="nav-btn active">
+          <span className="icon">🏠</span>
+          <span>Home</span>
+        </button>
+        <button className="nav-btn" onClick={() => onNavigate('stats')}>
+          <span className="icon">📊</span>
+          <span>Stats</span>
+        </button>
+        <button className="nav-btn" onClick={onSettings}>
+          <span className="icon">👤</span>
+          <span>Profile</span>
+        </button>
+      </nav>
+    </div>
+  );
+};
+
+// Player stats page with roster, analytics, and year selector.
+const StatsPage = ({ onBack, onNavigate, authUser }) => {
+  const [selectedYear, setSelectedYear] = useState('2024');
+
+  const players = [
+    {
+      id: 1,
+      name: 'Ethan Knox',
+      number: 10,
+      pts: 28.5,
+      reb: 7.2,
+      ast: 5.8,
+      position: 'SF',
+      team: 'Your Team',
+      trend: 'up',
+    },
+    {
+      id: 2,
+      name: 'Jalen Ford',
+      number: 23,
+      pts: 24.1,
+      reb: 4.5,
+      ast: 8.9,
+      position: 'PG',
+      team: 'Your Team',
+      trend: 'up',
+    },
+    {
+      id: 3,
+      name: 'Marco Lane',
+      number: 7,
+      pts: 19.7,
+      reb: 9.8,
+      ast: 2.1,
+      position: 'C',
+      team: 'Your Team',
+      trend: 'down',
+    },
+    {
+      id: 4,
+      name: 'Oliver Tate',
+      number: 15,
+      pts: 16.3,
+      reb: 3.9,
+      ast: 4.2,
+      position: 'SG',
+      team: 'Your Team',
+      trend: 'stable',
+    },
+    {
+      id: 5,
+      name: 'Tyler Briggs',
+      number: 32,
+      pts: 14.8,
+      reb: 8.1,
+      ast: 1.7,
+      position: 'PF',
+      team: 'Your Team',
+      trend: 'up',
+    },
+  ];
+
+  const years = ['2024', '2023', '2022', '2021'];
+
+  const getTrendIcon = (trend) => {
+    if (trend === 'up') return '📈';
+    if (trend === 'down') return '📉';
+    return '➡️';
+  };
+
+  return (
+    <div className="stats-page">
+      <div className="stats-background">
+        <div className="circuit-pattern"></div>
+      </div>
+
+      <header className="page-header">
+        <div className="header-content">
+          <button className="back-btn-new" onClick={onBack}>←</button>
+          <h1 className="page-title">Player Stats</h1>
+          <div style={{ width: 40 }}></div>
+        </div>
+      </header>
+
+      <main className="stats-main">
+        {/* Year Selector */}
+        <div className="year-selector">
+          <h3 className="selector-title">Season</h3>
+          <div className="year-pills">
+            {years.map((year) => (
+              <button
+                key={year}
+                className={`year-pill ${selectedYear === year ? 'active' : ''}`}
+                onClick={() => setSelectedYear(year)}
+              >
+                {year}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Players List */}
+        <div className="players-section">
+          <h3 className="section-title">Your Team Roster</h3>
+
+          <div className="players-list">
+            {players.map((player, index) => (
+              <motion.div
+                key={player.id}
+                className="player-card"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ scale: 1.02 }}
               >
-                <div className="game-header">
-                  <div className="league-badge">
-                    <span className="league-logo">🏀</span>
-                    <span>Fantasy Basketball</span>
+                <div className="player-avatar-section">
+                  <div className="player-avatar-stats">
+                    <div className="jersey-number">{player.number}</div>
                   </div>
-                  <div className="game-time">{game.time}</div>
-                </div>
-                <div className="game-matchup">
-                  <div className="team">
-                    <div className="team-logo">{game.logo1}</div>
-                    <span>{game.team1}</span>
-                  </div>
-                  <div className="vs">vs</div>
-                  <div className="team">
-                    <div className="team-logo">{game.logo2}</div>
-                    <span>{game.team2}</span>
+                  <div className="player-info">
+                    <div className="player-name">{player.name}</div>
+                    <div className="player-position">{player.position} • {player.team}</div>
                   </div>
                 </div>
-                <button className="watch-btn">View Details</button>
+
+                <div className="player-stats-grid">
+                  <div className="stat-item">
+                    <div className="stat-value-small">{player.pts}</div>
+                    <div className="stat-label-small">PTS</div>
+                  </div>
+                  <div className="stat-item">
+                    <div className="stat-value-small">{player.reb}</div>
+                    <div className="stat-label-small">REB</div>
+                  </div>
+                  <div className="stat-item">
+                    <div className="stat-value-small">{player.ast}</div>
+                    <div className="stat-label-small">AST</div>
+                  </div>
+                  <div className="stat-item">
+                    <span className="trend-icon">{getTrendIcon(player.trend)}</span>
+                  </div>
+                </div>
               </motion.div>
             ))}
           </div>
         </div>
 
-        <div className="section">
-          <h2 className="section-title">Your Performance</h2>
-          <div className="stats-grid">
-            {[
-              { icon: '📈', value: '1,247', label: 'Total Points' },
-              { icon: '🏆', value: '15', label: 'Wins' },
-              { icon: '👥', value: '23', label: 'Active Players' },
-            ].map((stat, index) => (
-              <motion.div
-                key={index}
-                className="stat-card"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2 + index * 0.1 }}
-              >
-                <div className="stat-icon">{stat.icon}</div>
-                <div className="stat-content">
-                  <div className="stat-value">{stat.value}</div>
-                  <div className="stat-label">{stat.label}</div>
-                </div>
-              </motion.div>
-            ))}
+        {/* Team Analytics */}
+        <div className="team-stats-section">
+          <h3 className="section-title">Team Analytics</h3>
+
+          <div className="analytics-grid">
+            <div className="analytics-card">
+              <div className="analytics-header">
+                <span className="analytics-icon">🎯</span>
+                <span className="analytics-title">Offensive Rating</span>
+              </div>
+              <div className="analytics-value">118.5</div>
+              <div className="analytics-change positive">+5.2% from last season</div>
+            </div>
+
+            <div className="analytics-card">
+              <div className="analytics-header">
+                <span className="analytics-icon">🛡️</span>
+                <span className="analytics-title">Defensive Rating</span>
+              </div>
+              <div className="analytics-value">106.3</div>
+              <div className="analytics-change positive">+3.8% from last season</div>
+            </div>
+
+            <div className="analytics-card">
+              <div className="analytics-header">
+                <span className="analytics-icon">⚡</span>
+                <span className="analytics-title">Pace</span>
+              </div>
+              <div className="analytics-value">102.7</div>
+              <div className="analytics-change negative">-1.5% from last season</div>
+            </div>
+
+            <div className="analytics-card">
+              <div className="analytics-header">
+                <span className="analytics-icon">🎲</span>
+                <span className="analytics-title">Win Probability</span>
+              </div>
+              <div className="analytics-value">67%</div>
+              <div className="analytics-change positive">vs AI Average</div>
+            </div>
           </div>
         </div>
+
+        <button className="compare-stats-btn" onClick={() => onNavigate('home')}>
+          Back to Home →
+        </button>
       </main>
 
+      {/* Bottom Navigation */}
       <nav className="bottom-nav">
-        <button className="nav-btn">
+        <button className="nav-btn" onClick={() => onNavigate('home')}>
+          <span className="icon">🏠</span>
+          <span>Home</span>
+        </button>
+        <button className="nav-btn active">
           <span className="icon">📊</span>
-          <span>Dashboard</span>
+          <span>Stats</span>
         </button>
-        <button className="nav-btn">
-          <span className="icon">🔍</span>
-          <span>Search</span>
-        </button>
-        <button className="nav-btn" onClick={onSettings}>
+        <button className="nav-btn" onClick={() => onNavigate('settings')}>
           <span className="icon">👤</span>
           <span>Profile</span>
         </button>
@@ -554,7 +887,11 @@ function App() {
           authUser={authState.user}
           onSettings={() => setPage('settings')}
           onLogout={handleLogout}
+          onNavigate={setPage}
         />
+      )}
+      {page === 'stats' && (
+        <StatsPage key="stats" onBack={() => setPage('home')} onNavigate={setPage} authUser={authState.user} />
       )}
       {page === 'settings' && (
         <SettingsPage key="settings" onBack={() => setPage('home')} onLogout={handleLogout} />

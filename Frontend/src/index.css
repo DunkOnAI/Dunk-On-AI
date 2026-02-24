@@ -1,4 +1,21 @@
 ﻿/* ============================================
+   GLOBAL VARIABLES & RESETS
+   ============================================ */
+
+:root {
+  --primary-bg: #0a0e1a;
+  --secondary-bg: #141929;
+  --accent-blue: #1a3a5c;
+  --accent-cyan: #00d4ff;
+  --accent-orange: #ff8557;
+  --accent-gold: #d4a056;
+  --text-primary: #ffffff;
+  --text-secondary: #a0b5d4;
+  --success: #4ade80;
+  --danger: #ef4444;
+}
+
+/* ============================================
    LOGIN PAGE STYLES
    ============================================ */
 
@@ -851,5 +868,807 @@
 
   .settings-title {
     font-size: 1.4rem;
+  }
+}
+
+/* ============================================
+   STATS PAGE
+   ============================================ */
+
+.stats-page {
+  position: relative;
+  min-height: 100vh;
+  background: var(--primary-bg);
+  padding-bottom: 80px;
+  overflow-x: hidden;
+}
+
+.stats-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.stats-main {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+/* ============================================
+   PAGE HEADER (shared by HomePage & StatsPage)
+   ============================================ */
+
+.page-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(10, 14, 26, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 2px solid rgba(0, 212, 255, 0.2);
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.page-logo {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #00d4ff, #ff8557);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 2px;
+}
+
+.page-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.icon-btn {
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.icon-btn:hover {
+  background: rgba(0, 212, 255, 0.2);
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+}
+
+.back-btn-new {
+  background: transparent;
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: 8px;
+  padding: 8px 16px;
+  color: var(--accent-cyan);
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.back-btn-new:hover {
+  background: rgba(0, 212, 255, 0.1);
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+}
+
+.signed-in-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+/* ============================================
+   SECTION HEADER & VIEW ALL BUTTON
+   ============================================ */
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.view-all-btn {
+  background: transparent;
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: 8px;
+  padding: 8px 16px;
+  color: var(--accent-cyan);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.view-all-btn:hover {
+  background: rgba(0, 212, 255, 0.1);
+  transform: translateX(5px);
+}
+
+/* ============================================
+   PERFORMANCE SECTION (HomePage)
+   ============================================ */
+
+.performance-section {
+  margin-bottom: 40px;
+}
+
+.stats-grid-large {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.stat-card-large {
+  background: linear-gradient(135deg, rgba(26, 58, 92, 0.4), rgba(20, 25, 41, 0.6));
+  border: 2px solid rgba(0, 212, 255, 0.2);
+  border-radius: 16px;
+  padding: 30px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.stat-card-large:hover {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 8px 30px rgba(0, 212, 255, 0.3);
+  transform: translateY(-5px);
+}
+
+.stat-icon-large {
+  font-size: 3rem;
+  min-width: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-content-large {
+  flex: 1;
+}
+
+.stat-value-large {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+  margin-bottom: 8px;
+  text-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+}
+
+.stat-label-large {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.stat-extra {
+  font-size: 0.85rem;
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+/* ============================================
+   GAMES SECTION — ENHANCED CARDS (HomePage)
+   ============================================ */
+
+.games-section {
+  margin-bottom: 40px;
+}
+
+.games-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.game-card-enhanced {
+  background: linear-gradient(135deg, rgba(26, 58, 92, 0.3), rgba(20, 25, 41, 0.6));
+  border: 2px solid rgba(0, 212, 255, 0.2);
+  border-radius: 16px;
+  padding: 25px;
+  transition: all 0.3s;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.game-card-enhanced.live {
+  border-color: var(--accent-orange);
+  box-shadow: 0 0 30px rgba(255, 133, 87, 0.3);
+}
+
+.game-card-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.game-card-enhanced:hover::before {
+  left: 100%;
+}
+
+.game-card-enhanced:hover {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 10px 40px rgba(0, 212, 255, 0.4);
+  transform: translateY(-3px);
+}
+
+.live-indicator {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 133, 87, 0.2);
+  border: 1px solid var(--accent-orange);
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent-orange);
+  letter-spacing: 1px;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--accent-orange);
+  border-radius: 50%;
+  animation: livePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
+}
+
+.game-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.game-date {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.game-quarter {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--accent-orange);
+  background: rgba(255, 133, 87, 0.1);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.game-matchup-enhanced {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding: 25px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.team-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+}
+
+.team-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  border: 2px solid rgba(0, 212, 255, 0.3);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+}
+
+.user-avatar {
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.3), rgba(0, 212, 255, 0.1));
+}
+
+.ai-avatar {
+  background: linear-gradient(135deg, rgba(255, 133, 87, 0.3), rgba(255, 133, 87, 0.1));
+  border-color: rgba(255, 133, 87, 0.3);
+  box-shadow: 0 0 20px rgba(255, 133, 87, 0.2);
+}
+
+.team-details {
+  flex: 1;
+}
+
+.team-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.team-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  letter-spacing: 1px;
+  background: rgba(0, 212, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.ai-label {
+  color: var(--accent-orange);
+  background: rgba(255, 133, 87, 0.1);
+}
+
+.team-score {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+  min-width: 80px;
+  text-align: center;
+}
+
+.vs-divider {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--accent-cyan);
+  padding: 0 20px;
+  text-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+}
+
+.game-action-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #ff8557, #ff6b3d);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(255, 133, 87, 0.3);
+}
+
+.game-action-btn:hover {
+  box-shadow: 0 6px 25px rgba(255, 133, 87, 0.5);
+  transform: translateY(-2px);
+}
+
+/* ============================================
+   CTA SECTION (HomePage)
+   ============================================ */
+
+.cta-section {
+  background: linear-gradient(135deg, rgba(26, 58, 92, 0.5), rgba(20, 25, 41, 0.7));
+  border: 2px solid rgba(0, 212, 255, 0.3);
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+  margin-top: 30px;
+}
+
+.cta-content {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.cta-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 15px;
+  text-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+}
+
+.cta-text {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  margin-bottom: 25px;
+}
+
+.cta-btn {
+  padding: 16px 40px;
+  background: linear-gradient(135deg, #00d4ff, #0099cc);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 6px 25px rgba(0, 212, 255, 0.4);
+}
+
+.cta-btn:hover {
+  box-shadow: 0 8px 35px rgba(0, 212, 255, 0.6);
+  transform: translateY(-3px);
+}
+
+/* ============================================
+   NAV BTN ACTIVE STATE
+   ============================================ */
+
+.nav-btn.active {
+  color: var(--accent-cyan);
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+}
+
+.nav-btn.active .icon {
+  filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.6));
+}
+
+/* ============================================
+   STATS PAGE — YEAR SELECTOR
+   ============================================ */
+
+.year-selector {
+  margin-bottom: 30px;
+}
+
+.selector-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 15px;
+}
+
+.year-pills {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.year-pill {
+  padding: 10px 20px;
+  background: rgba(26, 58, 92, 0.3);
+  border: 2px solid rgba(0, 212, 255, 0.2);
+  border-radius: 25px;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.year-pill:hover {
+  border-color: var(--accent-cyan);
+  background: rgba(0, 212, 255, 0.1);
+}
+
+.year-pill.active {
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.3), rgba(0, 212, 255, 0.2));
+  border-color: var(--accent-cyan);
+  color: var(--text-primary);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+/* ============================================
+   STATS PAGE — PLAYERS LIST
+   ============================================ */
+
+.players-section {
+  margin-bottom: 40px;
+}
+
+.players-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.player-card {
+  background: linear-gradient(135deg, rgba(26, 58, 92, 0.3), rgba(20, 25, 41, 0.6));
+  border: 2px solid rgba(0, 212, 255, 0.2);
+  border-radius: 14px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.player-card:hover {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 8px 30px rgba(0, 212, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.player-avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.player-avatar-stats {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, rgba(212, 160, 86, 0.3), rgba(255, 133, 87, 0.2));
+  border: 2px solid var(--accent-gold);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jersey-number {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  text-shadow: 0 0 10px rgba(212, 160, 86, 0.5);
+}
+
+.player-info {
+  flex: 1;
+}
+
+.player-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.player-position {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.player-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value-small {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+  margin-bottom: 5px;
+  text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+}
+
+.stat-label-small {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.trend-icon {
+  font-size: 1.5rem;
+}
+
+/* ============================================
+   STATS PAGE — TEAM ANALYTICS
+   ============================================ */
+
+.team-stats-section {
+  margin-bottom: 40px;
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.analytics-card {
+  background: linear-gradient(135deg, rgba(26, 58, 92, 0.3), rgba(20, 25, 41, 0.6));
+  border: 2px solid rgba(0, 212, 255, 0.2);
+  border-radius: 14px;
+  padding: 25px;
+  transition: all 0.3s;
+}
+
+.analytics-card:hover {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 8px 30px rgba(0, 212, 255, 0.3);
+  transform: translateY(-3px);
+}
+
+.analytics-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.analytics-icon {
+  font-size: 1.8rem;
+}
+
+.analytics-title {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.analytics-value {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  text-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+}
+
+.analytics-change {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.analytics-change.positive {
+  color: var(--success);
+}
+
+.analytics-change.negative {
+  color: var(--danger);
+}
+
+.compare-stats-btn {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  display: block;
+  padding: 18px;
+  background: linear-gradient(135deg, #00d4ff, #0099cc);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 6px 25px rgba(0, 212, 255, 0.4);
+}
+
+.compare-stats-btn:hover {
+  box-shadow: 0 8px 35px rgba(0, 212, 255, 0.6);
+  transform: translateY(-3px);
+}
+
+/* ============================================
+   RESPONSIVE — NEW COMPONENTS
+   ============================================ */
+
+@media (max-width: 768px) {
+  .page-logo {
+    font-size: 1.3rem;
+  }
+
+  .stats-main {
+    padding: 20px 15px;
+  }
+
+  .stats-grid-large {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-value-large {
+    font-size: 2rem;
+  }
+
+  .game-matchup-enhanced {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .team-section {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .vs-divider {
+    font-size: 1.2rem;
+  }
+
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cta-title {
+    font-size: 1.5rem;
+  }
+
+  .cta-text {
+    font-size: 1rem;
+  }
+
+  .player-stats-grid {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-card-enhanced {
+    padding: 20px 15px;
+  }
+
+  .team-avatar {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+  }
+
+  .team-name {
+    font-size: 1rem;
+  }
+
+  .team-score {
+    font-size: 2rem;
+  }
+
+  .stat-value-small {
+    font-size: 1.2rem;
+  }
+
+  .stat-label-small {
+    font-size: 0.65rem;
   }
 }
