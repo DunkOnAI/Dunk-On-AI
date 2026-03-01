@@ -1,7 +1,9 @@
-# Script to fetch all NBA players who played in the defined period
-# This file queries the NBA API for all players who played in 2025 regular season
-# It removes commas from names and teams and saves the results to Data/players.csv
-# If any step fails, it prints a clear error message and exits safely
+"""
+Script to fetch all NBA players who played in the defined period.
+This file queries the NBA API for all players who played in 2025 regular season.
+It removes commas from names and teams and saves the results to Data/players.csv
+If any step fails, it prints a clear error message and exits safely
+"""
 
 
 # Import required libraries
@@ -15,6 +17,16 @@ from nba_api.stats.endpoints import leaguegamelog
 
 # Function to fetch all players and save to CSV
 def get_players():
+    """
+    Returns:
+        dict: A dictionary containing:
+            - fatal_error (bool): True if a fatal exception occurred.
+            - warnings (int): Number of non-fatal issues encountered.
+            - error_code (int):
+                0   -> Success
+                -1  -> Unexpected fatal exception
+    """
+
     # Track warnings used for better logging
     warning_count = 0
 
@@ -60,15 +72,19 @@ def get_players():
         output_path = os.path.join(data_folder, "players.csv")
         players_df.to_csv(output_path, index=False)
 
-        # Return warning info (no fatal error)
-        return {"fatal_error": False, "warnings": warning_count, "error_code": 0}
+        # Return structured result
+        return {
+            "fatal_error": False,
+            "warnings": warning_count,
+            "error_code": 0
+        }
 
     except Exception as e:
-        # On error:
-        # - Print a clear message
-        # - Print the error details
-        # - Exit with failure code
+        # Fatal error for the function
         print("[WARN] Failed to fetch players.")
         print(f"[ERROR] {e}", file=sys.stderr)
-        return {"fatal_error": True, "warnings": warning_count, "error_code": -1}
-    
+        return {
+            "fatal_error": True,
+            "warnings": warning_count,
+            "error_code": -1
+        }

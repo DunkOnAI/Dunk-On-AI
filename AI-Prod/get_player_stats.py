@@ -1,8 +1,10 @@
-# Script to fetch NBA player game stats for a defined period
-# This file reads Data/players.csv and fetches each player's game logs
-# It converts minutes to seconds, computes week of the year, and
-# saves each player's stats to Data/player_<PLAYER_ID>/player_stats.csv
-# If any step fails, the script prints a clear error message and exits safely
+"""
+Script to fetch NBA player game stats for a defined period.
+This file reads Data/players.csv and fetches each player's game logs.
+It converts minutes to seconds, computes week of the year, and saves each player's
+stats to Data/player_<PLAYER_ID>/player_stats.csv
+If any step fails, the script prints a clear error message and exits safely
+"""
 
 
 # Import required libraries
@@ -28,6 +30,17 @@ def convert_minutes_to_seconds(min_str):
 
 # Function to fetch player stats and save to individual CSVs
 def get_player_stats():
+    """
+    Returns:
+        dict: A dictionary containing:
+            - fatal_error (bool): True if a fatal exception occurred.
+            - warnings (int): Number of player-specific processing errors encountered.
+            - error_code (int):
+                0   -> Success
+                -2  -> Unexpected fatal exception
+                -21 -> players.csv not found
+    """
+
     # Track warnings used for better logging
     warning_count = 0
 
@@ -40,7 +53,11 @@ def get_player_stats():
         # Check if players.csv exists
         if not os.path.exists(players_path):
             print("[WARN] players.csv not found. Run get_players() first.")
-            return {"fatal_error": True, "warnings": warning_count, "error_code": -21}
+            return {
+                "fatal_error": True,
+                "warnings": warning_count,
+                "error_code": -21
+            }
 
         # Read players
         players_df = pd.read_csv(players_path)
@@ -108,11 +125,19 @@ def get_player_stats():
                 warning_count += 1
                 print(f"[WARN] Error processing player {player_id} - {player_name}: {e}")
 
-        # Return warning info (no fatal error)
-        return {"fatal_error": False, "warnings": warning_count, "error_code": 0}
+        # Return structured result
+        return {
+            "fatal_error": False,
+            "warnings": warning_count,
+            "error_code": 0
+        }
 
     except Exception as e:
         # Fatal error for the function
         print("[ERROR] get_player_stats() failed.", file=sys.stderr)
         print(f"[ERROR] {e}", file=sys.stderr)
-        return {"fatal_error": True, "warnings": warning_count, "error_code": -2}
+        return {
+            "fatal_error": True,
+            "warnings": warning_count,
+            "error_code": -2
+        }

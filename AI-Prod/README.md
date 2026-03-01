@@ -47,11 +47,13 @@ pip install numpy
 pip install pandas
 ```
 
-- `nba-api` – for fetching NBA data  
-- `pandas` – for data processing  
-- `requests` – for API calls  
-- `numpy` – dependency for pandas  
-- Standard libraries: `os`, `sys`, `time`, `datetime`, `traceback`
+Libraries usage:
+
+* `nba-api` – for fetching NBA data  
+* `pandas` – for data processing  
+* `requests` – for API calls  
+* `numpy` – dependency for pandas  
+* Standard libraries: `os`, `sys`, `time`, `datetime`, `traceback`
 
 ---
 
@@ -61,11 +63,30 @@ pip install pandas
 python fetch_data.py
 ```
 
+---
+
 ### Behavior
 
 - **Step 1:** Fetches players → prints `[INFO]` / `[WARN]` messages depending on warnings or errors 
 - **Step 2:** Fetches player stats → prints `[INFO]` / `[WARN]` messages depending on warnings or errors  
-- Fatal errors stop execution with appropriate exit codes (see below).
+- Fatal errors stop execution immediately using `sys.exit(error_code)`.
+- Non-fatal issues are logged as `[WARN]` and counted, but do not interrupt the pipeline.
+
+---
+
+### Internal Return Structure
+
+Both `get_players()` and `get_player_stats()` return a dictionary:
+
+{
+    "fatal_error": bool,
+    "warnings": int,
+    "error_code": int
+}
+
+- `fatal_error=True` indicates immediate script termination.
+- `warnings` counts non-fatal issues.
+- `error_code` specifies the exit code if a fatal error occurs.
 
 ---
 

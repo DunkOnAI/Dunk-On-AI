@@ -1,8 +1,10 @@
-# Main entry script for NBA data collection pipeline
-# This file orchestrates the full data fetching process.
-# It first collects players for the defined period,
-# then collects detailed game statistics for each player.
-# If any step fails, the script exits safely with a clear error message.
+"""
+Main entry script for NBA data collection pipeline.
+This file orchestrates the full data fetching process.
+It first collects players for the defined period, then collects detailed game
+statistics for each player.
+If any step fails, the script exits safely with a clear error message.
+"""
 
 
 # Import required libraries
@@ -12,8 +14,22 @@ from get_players import get_players
 from get_player_stats import get_player_stats
 
 
-# Explain function breafly
+# Script entry point
 def main():
+    """
+    Returns:
+        None: This function does not return a value.
+
+        The script exits using sys.exit(error_code) if a fatal error occurs:
+            - error_code from get_players() if Step 1 fails
+            - error_code from get_player_stats() if Step 2 fails
+            - -1 if an unexpected exception occurs during Step 1
+            - -2 if an unexpected exception occurs during Step 2
+
+        If both steps complete without fatal errors, the function
+        finishes execution normally.
+    """
+
     print("Starting data fetch process...\n")
 
     # Step 1: Fetch all players who played in the defined time period
@@ -30,10 +46,7 @@ def main():
             print("Step 1 completed: Players fetched successfully.\n")
 
     except Exception as e:
-        # If player fetching fails:
-        # - Print clean error message
-        # - Print full traceback for debugging
-        # - Exit with failure code
+        # If player fetching fails
         print("[WARN] Step 1 not completed: Fatal error occurred while fetching players.")
         print(f"[ERROR] {e}.")
         traceback.print_exc()
@@ -53,10 +66,7 @@ def main():
             print("[INFO] Step 2 completed: Player stats fetched successfully.\n")
 
     except Exception as e:
-        # If stats fetching fails:
-        # - Print clean error message
-        # - Print full traceback for debugging
-        # - Exit with failure code
+        # If stats fetching fails
         print("[WARN] Step 2 not completed: Fatal error occurred while fetching player stats.")
         print(f"[ERROR] {e}")
         traceback.print_exc()
