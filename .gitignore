@@ -8,4 +8,7 @@ __pycache__
 
 venv/
 
+
+# Data variables which should be stored to data base
+/AI-Prod/Data
 app.db
