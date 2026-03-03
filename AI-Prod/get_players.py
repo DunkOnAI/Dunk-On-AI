@@ -11,8 +11,10 @@ import sys
 import os
 import time
 import pandas as pd
+import configparser
 from datetime import datetime
 from nba_api.stats.endpoints import leaguegamelog
+from nba_api.stats.endpoints import commonplayerinfo
 
 
 # Function to fetch all players and save to CSV
@@ -33,19 +35,24 @@ def get_players():
     try:
         print("[INFO] Fetching players for 2025 regular season...")
 
-        # Hardcoded period for filtering
-        start_date = "2025-01-01"
-        end_date = "2025-12-31"
+        # Load configuration
+        config = configparser.ConfigParser()
+        config.read("settings.cfg")
+
+        start_date = config["API"]["start_date"]
+        end_date = config["API"]["end_date"]
+        api_delay = float(config["API"]["api_delay"])
+        season = config["API"]["season"]
 
         # Fetch league game logs (Regular Season only)
         gamelog = leaguegamelog.LeagueGameLog(
-            season="2024-25",  # 2025 calendar year belongs to 2024-25 season
+            season=season,
             season_type_all_star="Regular Season",
             player_or_team_abbreviation="P"
         )
 
         # Wait briefly to avoid API throttling
-        time.sleep(0.5)
+        time.sleep(api_delay)
 
         # Extract DataFrame
         df = gamelog.get_data_frames()[0]
@@ -57,20 +64,49 @@ def get_players():
         df = df[(df["GAME_DATE"] >= start_date) & (df["GAME_DATE"] <= end_date)]
 
         # Keep only unique players
-        players_df = df[["PLAYER_ID", "PLAYER_NAME", "TEAM_NAME"]].drop_duplicates()
+        players_df = df[["PLAYER_ID", "PLAYER_NAME"]].drop_duplicates()
 
-        # Remove commas from player names and team names
+        # Remove commas from player names
         players_df["PLAYER_NAME"] = players_df["PLAYER_NAME"].str.replace(",", "", regex=False)
-        players_df["TEAM_NAME"] = players_df["TEAM_NAME"].str.replace(",", "", regex=False)
 
-        # Ensure Data directory exists
-        data_folder = "Data"
+        # Add POSITION column
+        positions = []
+
+        print("[INFO] Fetching player positions...")
+        total_players = len(players_df)
+        print(f"[INFO] Total players to process: {total_players}")
+
+        for index, player_id in enumerate(players_df["PLAYER_ID"], start=1):
+            print(f"[PROGRESS] {index}/{total_players} processing player {player_id}")
+            try:
+                info = commonplayerinfo.CommonPlayerInfo(player_id=player_id)
+                time.sleep(api_delay)
+
+                info_df = info.get_data_frames()[0]
+                position = info_df.loc[0, "POSITION"]
+
+                positions.append(position)
+
+            except Exception as e:
+                print(f"[WARN] Failed fetching position for {player_id}")
+                print(e)
+                positions.append("UNKNOWN")
+                warning_count += 1
+
+        players_df["POSITION"] = positions
+
+        # Ensure data/raw directory exists
+        data_folder = os.path.join("data", "raw")
+
         if not os.path.exists(data_folder):
             os.makedirs(data_folder)
 
-        # Save players to CSV (overwrite if exists)
+        # Save players to CSV
         output_path = os.path.join(data_folder, "players.csv")
         players_df.to_csv(output_path, index=False)
+        
+        # Success info message
+        print(f"[INFO] Players fetched: {total_players} | Processed: {total_players-warning_count} | Failed: {warning_count}")
 
         # Return structured result
         return {
@@ -88,3 +124,8 @@ def get_players():
             "warnings": warning_count,
             "error_code": -1
         }
+
+
+# Used for terminal calls
+if __name__ == "__main__":
+    print(get_players())

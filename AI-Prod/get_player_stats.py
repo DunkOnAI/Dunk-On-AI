@@ -12,6 +12,7 @@ import sys
 import os
 import time
 import pandas as pd
+import configparser
 from datetime import datetime
 from nba_api.stats.endpoints import playergamelog
 
@@ -43,12 +44,29 @@ def get_player_stats():
 
     # Track warnings used for better logging
     warning_count = 0
+    warning_skipped = 0
 
     try:
         print("[INFO] Fetching player stats for 2025 regular season...")
 
+        # Load configuration
+        config = configparser.ConfigParser()
+        config.read("settings.cfg")
+
+        start_date = pd.to_datetime(config["API"]["start_date"])
+        end_date = pd.to_datetime(config["API"]["end_date"])
+        api_delay = float(config["API"]["api_delay"])
+        season = config["API"]["season"]
+
+        # Fantasy weights
+        w_points = float(config["FANTASY"]["points"])
+        w_rebounds = float(config["FANTASY"]["rebounds"])
+        w_assists = float(config["FANTASY"]["assists"])
+        w_steals = float(config["FANTASY"]["steals"])
+        w_blocks = float(config["FANTASY"]["blocks"])
+
         # Path to players.csv
-        players_path = os.path.join("Data", "players.csv")
+        players_path = os.path.join("data", "raw", "players.csv")
 
         # Check if players.csv exists
         if not os.path.exists(players_path):
@@ -61,33 +79,31 @@ def get_player_stats():
 
         # Read players
         players_df = pd.read_csv(players_path)
-
-        # Define date range
-        start_date = pd.to_datetime("2025-01-01")
-        end_date = pd.to_datetime("2025-12-31")
+        total_players = len(players_df)
+        print(f"[INFO] Total players to process: {total_players}")
 
         # Loop over each player
-        for _, row in players_df.iterrows():
-            player_id = row["PLAYER_ID"]
-            player_name = row["PLAYER_NAME"]
+        for index, row in enumerate(players_df.itertuples(index=False), start=1):
+            player_id = row.PLAYER_ID
 
-            print(f"[INFO] Processing {player_id} - {player_name}...")
+            print(f"[PROGRESS] {index}/{total_players} processing player {player_id}")
 
             try:
                 # Fetch player game logs
                 gamelog = playergamelog.PlayerGameLog(
                     player_id=player_id,
-                    season="2024-25",
+                    season=season,
                     season_type_all_star="Regular Season"
                 )
 
                 # Delay to avoid API throttling
-                time.sleep(0.5)
+                time.sleep(api_delay)
 
                 df = gamelog.get_data_frames()[0]
 
                 if df.empty:
-                    print(f"[INFO] No games found for {player_name}")
+                    warning_skipped += 1
+                    print(f"[INFO] No games found for {player_id}")
                     continue
 
                 # Convert GAME_DATE to datetime
@@ -97,34 +113,57 @@ def get_player_stats():
                 df = df[(df["GAME_DATE"] >= start_date) & (df["GAME_DATE"] <= end_date)]
 
                 if df.empty:
-                    print(f"[INFO] No games in 2025 for {player_name}")
+                    print(f"[INFO] No games in 2025 for {player_id}")
                     continue
+
+                # Determine home/away + opponent
+                df["is_home_game"] = df["MATCHUP"].apply(lambda x: 1 if "vs." in x else 0)
+                df["opponent"] = df["MATCHUP"].apply(
+                    lambda x: x.split("vs. ")[1] if "vs." in x else x.split("@ ")[1]
+                )
+
+                # Calculate fantasy points
+                df["fantasy_points"] = (
+                    w_points * df["PTS"] +
+                    w_rebounds * df["REB"] +
+                    w_assists * df["AST"] +
+                    w_steals * df["STL"] +
+                    w_blocks * df["BLK"]
+                )
 
                 # Build output DataFrame
                 output_df = pd.DataFrame()
                 output_df["game_id"] = df["Game_ID"]
-                output_df["week_of_year"] = df["GAME_DATE"].dt.isocalendar().week
+                output_df["date"] = df["GAME_DATE"]
                 output_df["seconds_played"] = df["MIN"].apply(convert_minutes_to_seconds)
                 output_df["points"] = df["PTS"]
                 output_df["rebounds"] = df["REB"]
                 output_df["assists"] = df["AST"]
                 output_df["steals"] = df["STL"]
                 output_df["blocks"] = df["BLK"]
-                output_df["fantasy_points"] = 0
+                output_df["opponent"] = df["opponent"]
+                output_df["is_home_game"] = df["is_home_game"]
+                output_df["fantasy_points"] = df["fantasy_points"]
+
+                # Sort by date
+                output_df = output_df.sort_values("date")
 
                 # Create player folder
-                player_folder = os.path.join("Data", f"player_{player_id}")
+                player_folder = os.path.join("data", "raw", "players", str(player_id))
                 os.makedirs(player_folder, exist_ok=True)
 
                 # Save CSV (overwrite)
-                output_path = os.path.join(player_folder, "player_stats.csv")
+                output_path = os.path.join(player_folder, "game_stats.csv")
                 output_df.to_csv(output_path, index=False)
 
             except Exception as e:
                 # Error specific to this player
                 warning_count += 1
-                print(f"[WARN] Error processing player {player_id} - {player_name}: {e}")
+                print(f"[WARN] Error processing player {player_id}: {e}")
 
+        # Success info message
+        print(f"[INFO] Players fetched: {total_players} | Processed: {total_players-warning_count} | Skipped: {warning_skipped} | Failed: {warning_count}")
+        
         # Return structured result
         return {
             "fatal_error": False,
@@ -141,3 +180,8 @@ def get_player_stats():
             "warnings": warning_count,
             "error_code": -2
         }
+
+
+# Used for terminal calls
+if __name__ == "__main__":
+    print(get_player_stats())
