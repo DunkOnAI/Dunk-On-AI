@@ -23,8 +23,7 @@ def convert_minutes_to_seconds(min_str):
         return 0
 
     try:
-        minutes, seconds = min_str.split(":")
-        return int(minutes) * 60 + int(seconds)
+        return int(min_str) * 60
     except Exception:
         return 0
 
