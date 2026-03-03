@@ -1,9 +1,11 @@
 """
-Script to build master training dataset for all NBA players.
-This file reads data/raw/players.csv,
-calls build_player_training_ready_data.py for each player,
-merges all player training datasets into master_training.csv,
-and creates position-specific training files.
+Script to build the master training dataset for all NBA players.
+
+This file:
+- Reads data/raw/players.csv
+- Builds training-ready data for each player
+- Merges all player datasets into data/processed/master_training.csv
+
 If any step fails, the script prints a clear error message and exits safely.
 """
 

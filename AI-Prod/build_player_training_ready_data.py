@@ -1,9 +1,11 @@
 """
-Script to build training-ready dataset for a single NBA player.
-This file reads data/raw/players/<PLAYER_ID>/game_stats.csv,
-computes lag, rolling, season, and rest features,
-and saves the result to
-data/processed/players/<PLAYER_ID>/training_ready_data.csv
+Script to build training-ready data for a single NBA player.
+
+This file:
+- Reads raw player game statistics from data/raw/players/<PLAYER_ID>/game_stats.csv
+- Computes lag, rolling, season, and rest-based features
+- Saves the processed dataset to data/processed/players/<PLAYER_ID>/training_ready_data.csv
+
 If any step fails, the script prints a clear error message and exits safely.
 """
 
