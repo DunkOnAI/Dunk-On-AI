@@ -1,0 +1,15 @@
+# Packages 
+__pycache__
+
+
+# Environment variables 
+.vscode
+.flaskenv
+.env
+
+venv/
+
+app.db
+
+# Data variables which should be stored to data base
+/AI-Prod/Data
