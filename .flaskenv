@@ -1,0 +1,2 @@
+FLASK_APP=Fantasy_Basketball.py
+FLASK_DEBUG=1
