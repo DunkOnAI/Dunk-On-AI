@@ -1,9 +1,12 @@
 """
-Main entry script for NBA data collection pipeline.
-This file orchestrates the full data fetching process.
-It first collects players for the defined period, then collects detailed game
-statistics for each player.
-If any step fails, the script exits safely with a clear error message.
+Script to orchestrate the NBA data collection pipeline.
+
+This file:
+- Fetches all players for the defined period
+- Fetches detailed game statistics for each player
+- Ensures safe execution with structured error handling
+
+If any step fails, the script prints a clear error message and exits safely.
 """
 
 
