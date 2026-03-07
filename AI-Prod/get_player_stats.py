@@ -110,7 +110,15 @@ def get_player_stats():
                 output_df["assists"] = df["AST"]
                 output_df["steals"] = df["STL"]
                 output_df["blocks"] = df["BLK"]
-                output_df["fantasy_points"] = 0
+
+                # Standard fantasy scoring formula
+                output_df["fantasy_points"] = (
+                    output_df["points"] * 1.0
+                    + output_df["rebounds"] * 1.2
+                    + output_df["assists"] * 1.5
+                    + output_df["steals"] * 3.0
+                    + output_df["blocks"] * 3.0
+                )
 
                 # Create player folder
                 player_folder = os.path.join("Data", f"player_{player_id}")

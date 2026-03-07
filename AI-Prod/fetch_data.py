@@ -12,6 +12,7 @@ import sys
 import traceback
 from get_players import get_players
 from get_player_stats import get_player_stats
+from compute_weekly_scores import compute_weekly_scores
 
 
 # Script entry point
@@ -54,7 +55,7 @@ def main():
 
     # Step 2: Fetch detailed game stats for each player
     try:
-        print("[INFO] Step 2/2: Fetching player stats...")
+        print("[INFO] Step 2/3: Fetching player stats...")
         result = get_player_stats()  # Returns warning info
 
         if result["fatal_error"]:
@@ -72,7 +73,26 @@ def main():
         traceback.print_exc()
         sys.exit(-2)
 
-    # If both steps complete successfully
+    # Step 3: Aggregate per-game stats into weekly fantasy scores
+    try:
+        print("[INFO] Step 3/3: Computing weekly fantasy scores...")
+        result = compute_weekly_scores()
+
+        if result["fatal_error"]:
+            print("[WARN] Step 3 not completed: Fatal error occurred while computing weekly scores.")
+            sys.exit(result["error_code"])
+        elif result["warnings"] != 0:
+            print(f"[WARN] Step 3 completed with {result['warnings']} warnings.")
+        else:
+            print("[INFO] Step 3 completed: Weekly scores computed successfully.\n")
+
+    except Exception as e:
+        print("[WARN] Step 3 not completed: Fatal error occurred while computing weekly scores.")
+        print(f"[ERROR] {e}")
+        traceback.print_exc()
+        sys.exit(-3)
+
+    # If all steps complete successfully
     print("Data fetch process completed successfully.")
 
 
