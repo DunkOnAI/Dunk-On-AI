@@ -15,6 +15,19 @@
   --danger: #ef4444;
 }
 
+:root[data-theme='beige'] {
+  --primary-bg: #efe2cf;
+  --secondary-bg: #f7ecda;
+  --accent-blue: #d8c2a2;
+  --accent-cyan: #6a8b8e;
+  --accent-orange: #b8774a;
+  --accent-gold: #b7965e;
+  --text-primary: #2f2a24;
+  --text-secondary: #6f6558;
+  --success: #3b8f68;
+  --danger: #c64b4b;
+}
+
 /* ============================================
    LOGIN PAGE STYLES
    ============================================ */
@@ -26,7 +39,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: radial-gradient(ellipse at center, #1a3a5c 0%, #0a0e1a 100%);
+  background: radial-gradient(ellipse at center, var(--accent-blue) 0%, var(--primary-bg) 100%);
 }
 
 .background-animation {
@@ -764,6 +777,12 @@
   transform: translateX(5px);
 }
 
+.settings-item.active {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 4px 20px rgba(0, 212, 255, 0.25);
+  background: linear-gradient(135deg, rgba(26, 58, 92, 0.45), rgba(0, 212, 255, 0.15));
+}
+
 .settings-item-content {
   display: flex;
   align-items: center;
@@ -789,6 +808,99 @@
 .settings-item:hover .settings-arrow {
   color: var(--accent-cyan);
   transform: translateX(5px);
+}
+
+.settings-detail-card {
+  margin-top: 16px;
+  background: rgba(20, 25, 41, 0.78);
+  border: 2px solid rgba(0, 212, 255, 0.2);
+  border-radius: 14px;
+  padding: 18px;
+}
+
+:root[data-theme='beige'] .settings-detail-card {
+  background: rgba(255, 255, 255, 0.65);
+  border-color: rgba(106, 139, 142, 0.35);
+}
+
+.settings-detail-title {
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  font-size: 1.1rem;
+}
+
+.settings-detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 10px;
+  color: var(--text-secondary);
+}
+
+.settings-detail-row strong {
+  color: var(--text-primary);
+}
+
+.settings-detail-list {
+  padding-left: 18px;
+  color: var(--text-secondary);
+  display: grid;
+  gap: 8px;
+}
+
+.settings-detail-empty {
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.settings-notification-list {
+  display: grid;
+  gap: 10px;
+}
+
+.settings-notification-item {
+  background: rgba(10, 14, 26, 0.4);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+:root[data-theme='beige'] .settings-notification-item {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(106, 139, 142, 0.28);
+}
+
+.settings-notification-item p {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+}
+
+.settings-notification-item span {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.settings-theme-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.settings-theme-btn {
+  border: 1px solid rgba(0, 212, 255, 0.35);
+  background: rgba(0, 212, 255, 0.12);
+  color: var(--text-primary);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 600;
+}
+
+.settings-theme-btn.active {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 1px rgba(212, 160, 86, 0.35);
 }
 
 .logout-btn {
@@ -1594,6 +1706,237 @@
 }
 
 /* ============================================
+   MATCH UP PAGE
+   ============================================ */
+
+.matchup-hero-card {
+  background: linear-gradient(135deg, rgba(26, 58, 92, 0.45), rgba(20, 25, 41, 0.7));
+  border: 2px solid rgba(0, 212, 255, 0.22);
+  border-radius: 16px;
+  padding: 22px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.28);
+}
+
+.matchup-teams-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.matchup-team-block {
+  background: rgba(10, 14, 26, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.matchup-team-block h3 {
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+
+.matchup-team-block p {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.matchup-team-badge {
+  display: inline-block;
+  margin-bottom: 8px;
+  background: rgba(0, 212, 255, 0.16);
+  border: 1px solid rgba(0, 212, 255, 0.35);
+  color: var(--accent-cyan);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.8px;
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.matchup-team-badge.ai {
+  color: var(--accent-orange);
+  background: rgba(255, 133, 87, 0.16);
+  border-color: rgba(255, 133, 87, 0.45);
+}
+
+.matchup-vs {
+  font-family: 'Orbitron', sans-serif;
+  color: var(--accent-cyan);
+  font-size: 1.2rem;
+  font-weight: 900;
+  text-shadow: 0 0 12px rgba(0, 212, 255, 0.55);
+}
+
+.matchup-chance {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 8px 0;
+  color: var(--text-secondary);
+}
+
+.matchup-chance strong {
+  color: var(--text-primary);
+  font-family: 'Orbitron', sans-serif;
+}
+
+.matchup-meter {
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.matchup-meter-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00d4ff, #ff8557);
+  box-shadow: 0 0 16px rgba(0, 212, 255, 0.55);
+}
+
+.matchup-select-card.selected {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 1px rgba(212, 160, 86, 0.45), 0 8px 30px rgba(212, 160, 86, 0.25);
+}
+
+.matchup-checkbox {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 212, 255, 0.35);
+  color: var(--accent-cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.matchup-stats-board {
+  background: rgba(20, 25, 41, 0.72);
+  border: 2px solid rgba(0, 212, 255, 0.2);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.matchup-stat-row {
+  margin-bottom: 14px;
+}
+
+.matchup-stat-row:last-child {
+  margin-bottom: 0;
+}
+
+.matchup-stat-values {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.matchup-stat-values span:first-child {
+  text-align: left;
+}
+
+.matchup-stat-values span:nth-child(2) {
+  font-size: 0.8rem;
+  letter-spacing: 0.8px;
+  color: var(--text-secondary);
+}
+
+.matchup-stat-values span:last-child {
+  text-align: right;
+}
+
+.matchup-bars {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.matchup-bar {
+  height: 10px;
+  border-radius: 999px;
+}
+
+.matchup-bar.your {
+  justify-self: end;
+  background: linear-gradient(90deg, rgba(0, 212, 255, 0.5), #00d4ff);
+}
+
+.matchup-bar.ai {
+  background: linear-gradient(90deg, #ff8557, rgba(255, 133, 87, 0.45));
+}
+
+.matchup-result-card {
+  margin-top: 20px;
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(255, 133, 87, 0.2));
+  border: 2px solid rgba(0, 212, 255, 0.3);
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+}
+
+.matchup-result-card h3 {
+  font-family: 'Orbitron', sans-serif;
+  margin-bottom: 6px;
+}
+
+.matchup-hint {
+  margin-bottom: 12px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.matchup-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.matchup-ai-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.matchup-ai-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: rgba(20, 25, 41, 0.72);
+  border: 1px solid rgba(255, 133, 87, 0.26);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.matchup-ai-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.matchup-ai-number {
+  min-width: 42px;
+  text-align: center;
+  font-family: 'Orbitron', sans-serif;
+  background: rgba(255, 133, 87, 0.16);
+  border: 1px solid rgba(255, 133, 87, 0.35);
+  color: var(--accent-orange);
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+
+.matchup-ai-right {
+  display: flex;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+/* ============================================
    RESPONSIVE — NEW COMPONENTS
    ============================================ */
 
@@ -1642,6 +1985,29 @@
 
   .player-stats-grid {
     gap: 10px;
+  }
+
+  .matchup-teams-row {
+    grid-template-columns: 1fr;
+  }
+
+  .matchup-vs {
+    text-align: center;
+  }
+
+  .matchup-ai-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .matchup-ai-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .matchup-actions {
+    width: 100%;
+    justify-content: flex-end;
   }
 }
 

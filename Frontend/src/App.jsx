@@ -1,6 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './index.css';
+
+const SESSION_STORAGE_KEY = 'dunk_on_ai_session';
+const LAST_ACTIVITY_KEY = 'dunk_on_ai_last_activity';
+const THEME_STORAGE_KEY = 'dunk_on_ai_theme';
+const NOTIFICATIONS_STORAGE_KEY = 'dunk_on_ai_notifications';
+const IDLE_TIMEOUT_MS = 10 * 60 * 1000;
 
 const parseApiPayload = async (response) => {
   const text = await response.text();
@@ -28,6 +34,101 @@ const getApiErrorMessage = (payload, fallbackMessage) => {
     : debugDetails.message || JSON.stringify(debugDetails);
 
   return `${baseMessage} (${debugMessage})`;
+};
+
+const ROSTER_PLAYERS = [
+  {
+    id: 1,
+    name: 'Ethan Knox',
+    number: 10,
+    pts: 28.5,
+    reb: 7.2,
+    ast: 5.8,
+    position: 'SF',
+    team: 'Your Team',
+    sport: 'basketball',
+    trend: 'up',
+  },
+  {
+    id: 2,
+    name: 'Jalen Ford',
+    number: 23,
+    pts: 24.1,
+    reb: 4.5,
+    ast: 8.9,
+    position: 'PG',
+    team: 'Your Team',
+    sport: 'basketball',
+    trend: 'up',
+  },
+  {
+    id: 3,
+    name: 'Marco Lane',
+    number: 7,
+    pts: 19.7,
+    reb: 9.8,
+    ast: 2.1,
+    position: 'C',
+    team: 'Your Team',
+    sport: 'basketball',
+    trend: 'down',
+  },
+  {
+    id: 4,
+    name: 'Oliver Tate',
+    number: 15,
+    pts: 16.3,
+    reb: 3.9,
+    ast: 4.2,
+    position: 'SG',
+    team: 'Your Team',
+    sport: 'basketball',
+    trend: 'stable',
+  },
+  {
+    id: 5,
+    name: 'Tyler Briggs',
+    number: 32,
+    pts: 14.8,
+    reb: 8.1,
+    ast: 1.7,
+    position: 'PF',
+    team: 'Your Team',
+    sport: 'basketball',
+    trend: 'up',
+  },
+  {
+    id: 6,
+    name: 'Noah Reed',
+    number: 8,
+    pts: 17.9,
+    reb: 6.4,
+    ast: 3.7,
+    position: 'SG',
+    team: 'Your Team',
+    sport: 'basketball',
+    trend: 'stable',
+  },
+  {
+    id: 7,
+    name: 'Luca Hayes',
+    number: 41,
+    pts: 12.6,
+    reb: 11.1,
+    ast: 2.9,
+    position: 'C',
+    team: 'Your Team',
+    sport: 'basketball',
+    trend: 'up',
+  },
+];
+
+const getLineupSizeBySport = (sport) => {
+  const normalized = (sport || '').toLowerCase();
+  if (normalized === 'football') return 11;
+  if (normalized === 'basketball') return 5;
+  if (normalized === 'volleyball') return 6;
+  return 5;
 };
 
 // Reusable animated auth screen wrapper for both login and signup.
@@ -524,7 +625,7 @@ const HomePage = ({ authUser, onLogout, onSettings, onNavigate }) => {
 
                 <button
                   className="game-action-btn"
-                  onClick={() => onNavigate('stats')}
+                  onClick={() => onNavigate('matchup')}
                 >
                   {game.status === 'Live' ? 'Watch Live' : 'View Matchup'}
                 </button>
@@ -560,6 +661,10 @@ const HomePage = ({ authUser, onLogout, onSettings, onNavigate }) => {
           <span className="icon">📊</span>
           <span>Stats</span>
         </button>
+        <button className="nav-btn" onClick={() => onNavigate('matchup')}>
+          <span className="icon">⚔️</span>
+          <span>Match Up</span>
+        </button>
         <button className="nav-btn" onClick={onSettings}>
           <span className="icon">👤</span>
           <span>Profile</span>
@@ -572,64 +677,7 @@ const HomePage = ({ authUser, onLogout, onSettings, onNavigate }) => {
 // Player stats page with roster, analytics, and year selector.
 const StatsPage = ({ onBack, onNavigate, authUser }) => {
   const [selectedYear, setSelectedYear] = useState('2024');
-
-  const players = [
-    {
-      id: 1,
-      name: 'Ethan Knox',
-      number: 10,
-      pts: 28.5,
-      reb: 7.2,
-      ast: 5.8,
-      position: 'SF',
-      team: 'Your Team',
-      trend: 'up',
-    },
-    {
-      id: 2,
-      name: 'Jalen Ford',
-      number: 23,
-      pts: 24.1,
-      reb: 4.5,
-      ast: 8.9,
-      position: 'PG',
-      team: 'Your Team',
-      trend: 'up',
-    },
-    {
-      id: 3,
-      name: 'Marco Lane',
-      number: 7,
-      pts: 19.7,
-      reb: 9.8,
-      ast: 2.1,
-      position: 'C',
-      team: 'Your Team',
-      trend: 'down',
-    },
-    {
-      id: 4,
-      name: 'Oliver Tate',
-      number: 15,
-      pts: 16.3,
-      reb: 3.9,
-      ast: 4.2,
-      position: 'SG',
-      team: 'Your Team',
-      trend: 'stable',
-    },
-    {
-      id: 5,
-      name: 'Tyler Briggs',
-      number: 32,
-      pts: 14.8,
-      reb: 8.1,
-      ast: 1.7,
-      position: 'PF',
-      team: 'Your Team',
-      trend: 'up',
-    },
-  ];
+  const players = ROSTER_PLAYERS;
 
   const years = ['2024', '2023', '2022', '2021'];
 
@@ -759,8 +807,8 @@ const StatsPage = ({ onBack, onNavigate, authUser }) => {
           </div>
         </div>
 
-        <button className="compare-stats-btn" onClick={() => onNavigate('home')}>
-          Back to Home →
+        <button className="compare-stats-btn" onClick={() => onNavigate('matchup')}>
+          Open Match Up →
         </button>
       </main>
 
@@ -774,6 +822,291 @@ const StatsPage = ({ onBack, onNavigate, authUser }) => {
           <span className="icon">📊</span>
           <span>Stats</span>
         </button>
+        <button className="nav-btn" onClick={() => onNavigate('matchup')}>
+          <span className="icon">⚔️</span>
+          <span>Match Up</span>
+        </button>
+        <button className="nav-btn" onClick={() => onNavigate('settings')}>
+          <span className="icon">👤</span>
+          <span>Profile</span>
+        </button>
+      </nav>
+    </div>
+  );
+};
+
+const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification }) => {
+  const aiPool = [
+    { id: 101, name: 'Orion Blaze', number: 2, position: 'PG', pts: 22.4, reb: 4.1, ast: 9.2 },
+    { id: 102, name: 'Kai Mercer', number: 11, position: 'SG', pts: 26.8, reb: 5.0, ast: 4.9 },
+    { id: 103, name: 'Darius Volt', number: 34, position: 'PF', pts: 18.6, reb: 10.4, ast: 2.8 },
+    { id: 104, name: 'Zane Hollow', number: 25, position: 'SF', pts: 20.7, reb: 7.4, ast: 3.1 },
+    { id: 105, name: 'Rex Carter', number: 55, position: 'C', pts: 15.2, reb: 12.0, ast: 1.5 },
+    { id: 106, name: 'Mason Voss', number: 4, position: 'PG', pts: 18.1, reb: 3.6, ast: 8.5 },
+    { id: 107, name: 'Ivy Sloan', number: 13, position: 'SF', pts: 21.3, reb: 6.8, ast: 4.2 },
+    { id: 108, name: 'Jett Cross', number: 19, position: 'SG', pts: 17.4, reb: 4.0, ast: 3.9 },
+    { id: 109, name: 'Axel Grant', number: 44, position: 'PF', pts: 16.8, reb: 9.6, ast: 2.3 },
+    { id: 110, name: 'Nico Dunn', number: 31, position: 'C', pts: 14.1, reb: 11.5, ast: 1.9 },
+  ];
+  const teamSport = (ROSTER_PLAYERS[0]?.sport || 'basketball').toLowerCase();
+  const lineupSizeBySport = getLineupSizeBySport(teamSport);
+  const TEAM_SIZE = Math.min(lineupSizeBySport, ROSTER_PLAYERS.length, aiPool.length);
+
+  const [selectedPlayerIds, setSelectedPlayerIds] = useState(() =>
+    ROSTER_PLAYERS.slice(0, TEAM_SIZE).map((player) => player.id)
+  );
+  const generateAiTeam = () => {
+    const shuffled = [...aiPool].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, TEAM_SIZE);
+  };
+  const [aiPlayers, setAiPlayers] = useState(() => generateAiTeam());
+  const [simulation, setSimulation] = useState(null);
+  const [matchupNotice, setMatchupNotice] = useState(`Build your ${TEAM_SIZE}-player team, then tap Simulate.`);
+  const resultRef = useRef(null);
+
+  const selectedTeam = ROSTER_PLAYERS.filter((player) => selectedPlayerIds.includes(player.id));
+
+  const summarizeTeam = (teamPlayers) => {
+    const totals = teamPlayers.reduce((acc, player) => ({
+      pts: acc.pts + player.pts,
+      reb: acc.reb + player.reb,
+      ast: acc.ast + player.ast,
+    }), { pts: 0, reb: 0, ast: 0 });
+    const size = teamPlayers.length || 1;
+    const avg = {
+      pts: totals.pts / size,
+      reb: totals.reb / size,
+      ast: totals.ast / size,
+    };
+    const power = avg.pts * 1.45 + avg.reb * 1.15 + avg.ast * 1.35;
+    return { ...avg, power };
+  };
+
+  const yourTeamStats = summarizeTeam(selectedTeam);
+  const aiTeamStats = summarizeTeam(aiPlayers);
+  const powerDiff = yourTeamStats.power - aiTeamStats.power;
+  const winChance = Math.max(20, Math.min(80, Math.round(50 + powerDiff * 1.4)));
+
+  const togglePlayerSelection = (playerId) => {
+    setSimulation(null);
+    setSelectedPlayerIds((current) => {
+      if (current.includes(playerId)) {
+        if (current.length <= TEAM_SIZE) {
+          setMatchupNotice(`You must keep ${TEAM_SIZE} players in your team.`);
+          return current;
+        }
+        setMatchupNotice('Player removed from lineup.');
+        return current.filter((id) => id !== playerId);
+      }
+      if (current.length >= TEAM_SIZE) {
+        setMatchupNotice(`Team size is fixed at ${TEAM_SIZE}.`);
+        return current;
+      }
+      setMatchupNotice('Player added to lineup.');
+      return [...current, playerId];
+    });
+  };
+
+  const runSimulation = () => {
+    if (selectedPlayerIds.length !== TEAM_SIZE) {
+      setMatchupNotice(`You need exactly ${TEAM_SIZE} players to simulate.`);
+      return;
+    }
+    const nextAiTeam = generateAiTeam();
+    setAiPlayers(nextAiTeam);
+    const nextAiStats = summarizeTeam(nextAiTeam);
+    const nextPowerDiff = yourTeamStats.power - nextAiStats.power;
+    const nextWinChance = Math.max(20, Math.min(80, Math.round(50 + nextPowerDiff * 1.4)));
+    const userWinThreshold = nextWinChance / 100;
+    const userWon = Math.random() <= userWinThreshold;
+    const baseYourScore = Math.round(yourTeamStats.pts * 3.3 + yourTeamStats.ast * 1.6 + yourTeamStats.reb * 0.8);
+    const baseAiScore = Math.round(nextAiStats.pts * 3.3 + nextAiStats.ast * 1.6 + nextAiStats.reb * 0.8);
+    const yourScore = baseYourScore + Math.round((Math.random() - 0.5) * 16) + (userWon ? 4 : -2);
+    const aiScore = baseAiScore + Math.round((Math.random() - 0.5) * 16) + (userWon ? -2 : 4);
+
+    setSimulation({
+      yourScore,
+      aiScore,
+      winner: yourScore >= aiScore ? 'you' : 'ai',
+    });
+    if (onNewNotification) {
+      onNewNotification({
+        id: `match-${Date.now()}`,
+        type: 'match_result',
+        title: yourScore >= aiScore ? 'Match Won' : 'Match Lost',
+        message: `Final score: You ${yourScore} - ${aiScore} AI Titans`,
+        createdAt: new Date().toISOString(),
+      });
+    }
+    setMatchupNotice('Simulation completed.');
+    setTimeout(() => {
+      resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 20);
+  };
+
+  const refreshAiTeam = () => {
+    setSimulation(null);
+    setAiPlayers(generateAiTeam());
+    setMatchupNotice('AI team refreshed.');
+  };
+
+  const statRows = [
+    { label: 'PTS', your: yourTeamStats.pts, ai: aiTeamStats.pts },
+    { label: 'REB', your: yourTeamStats.reb, ai: aiTeamStats.reb },
+    { label: 'AST', your: yourTeamStats.ast, ai: aiTeamStats.ast },
+    { label: 'POWER', your: yourTeamStats.power, ai: aiTeamStats.power },
+  ];
+
+  return (
+    <div className="stats-page">
+      <div className="stats-background">
+        <div className="circuit-pattern"></div>
+      </div>
+
+      <header className="page-header">
+        <div className="header-content">
+          <button className="back-btn-new" onClick={onBack}>←</button>
+          <h1 className="page-title">Players Match Up</h1>
+          <div style={{ width: 40 }}></div>
+        </div>
+      </header>
+
+      <main className="stats-main">
+        {authUser ? <p className="signed-in-label">Signed in as {authUser.email}</p> : null}
+        {TEAM_SIZE < lineupSizeBySport ? (
+          <p className="signed-in-label">
+            Team rule: {teamSport} needs {lineupSizeBySport}, available pool allows {TEAM_SIZE}.
+          </p>
+        ) : null}
+
+        <section className="matchup-hero-card">
+          <div className="matchup-teams-row">
+            <div className="matchup-team-block">
+              <div className="matchup-team-badge">YOU</div>
+              <h3>Your Lineup</h3>
+              <p>{selectedTeam.length} players selected</p>
+            </div>
+            <div className="matchup-vs">VS</div>
+            <div className="matchup-team-block">
+              <div className="matchup-team-badge ai">AI</div>
+              <h3>AI Titans</h3>
+              <p>{aiPlayers.length} players selected</p>
+            </div>
+          </div>
+          <div className="matchup-chance">
+            <span>Win Chance</span>
+            <strong>{winChance}%</strong>
+          </div>
+          <div className="matchup-meter">
+            <div className="matchup-meter-fill" style={{ width: `${winChance}%` }}></div>
+          </div>
+        </section>
+
+        <section className="players-section">
+          <div className="section-header">
+            <h3 className="section-title">Build Your Team ({TEAM_SIZE} Players)</h3>
+            <div className="matchup-actions">
+              <button className="view-all-btn" onClick={refreshAiTeam}>New AI Team</button>
+              <button className="view-all-btn" onClick={runSimulation}>Simulate</button>
+            </div>
+          </div>
+          <p className="matchup-hint">{matchupNotice} Selected: {selectedPlayerIds.length}/{TEAM_SIZE}</p>
+          <div className="players-list">
+            {ROSTER_PLAYERS.map((player, index) => {
+              const isSelected = selectedPlayerIds.includes(player.id);
+              return (
+                <motion.div
+                  key={player.id}
+                  className={`player-card matchup-select-card ${isSelected ? 'selected' : ''}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.08 }}
+                  whileHover={{ scale: 1.02 }}
+                  onClick={() => togglePlayerSelection(player.id)}
+                >
+                  <div className="player-avatar-section">
+                    <div className="player-avatar-stats">
+                      <div className="jersey-number">{player.number}</div>
+                    </div>
+                    <div className="player-info">
+                      <div className="player-name">{player.name}</div>
+                      <div className="player-position">{player.position} • {player.pts} PTS</div>
+                    </div>
+                    <div className="matchup-checkbox">{isSelected ? '✓' : '+'}</div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="team-stats-section">
+          <h3 className="section-title">AI Selected Team</h3>
+          <div className="matchup-ai-list">
+            {aiPlayers.map((player) => (
+              <div key={player.id} className="matchup-ai-item">
+                <div className="matchup-ai-left">
+                  <span className="matchup-ai-number">#{player.number}</span>
+                  <div>
+                    <div className="player-name">{player.name}</div>
+                    <div className="player-position">{player.position}</div>
+                  </div>
+                </div>
+                <div className="matchup-ai-right">
+                  <span>{player.pts} PTS</span>
+                  <span>{player.reb} REB</span>
+                  <span>{player.ast} AST</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="team-stats-section">
+          <h3 className="section-title">Head-to-Head Comparison</h3>
+          <div className="matchup-stats-board">
+            {statRows.map((row) => {
+              const total = row.your + row.ai;
+              const yourWidth = total ? Math.max(12, (row.your / total) * 100) : 50;
+              const aiWidth = total ? Math.max(12, (row.ai / total) * 100) : 50;
+              return (
+                <div key={row.label} className="matchup-stat-row">
+                  <div className="matchup-stat-values">
+                    <span>{row.your.toFixed(1)}</span>
+                    <span>{row.label}</span>
+                    <span>{row.ai.toFixed(1)}</span>
+                  </div>
+                  <div className="matchup-bars">
+                    <div className="matchup-bar your" style={{ width: `${yourWidth}%` }}></div>
+                    <div className="matchup-bar ai" style={{ width: `${aiWidth}%` }}></div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {simulation ? (
+          <section className="matchup-result-card" ref={resultRef}>
+            <h3>{simulation.winner === 'you' ? 'You Win the Simulation' : 'AI Wins the Simulation'}</h3>
+            <p>Final Score: You {simulation.yourScore} - {simulation.aiScore} AI</p>
+          </section>
+        ) : null}
+      </main>
+
+      <nav className="bottom-nav">
+        <button className="nav-btn" onClick={() => onNavigate('home')}>
+          <span className="icon">🏠</span>
+          <span>Home</span>
+        </button>
+        <button className="nav-btn" onClick={() => onNavigate('stats')}>
+          <span className="icon">📊</span>
+          <span>Stats</span>
+        </button>
+        <button className="nav-btn active">
+          <span className="icon">⚔️</span>
+          <span>Match Up</span>
+        </button>
         <button className="nav-btn" onClick={() => onNavigate('settings')}>
           <span className="icon">👤</span>
           <span>Profile</span>
@@ -784,7 +1117,7 @@ const StatsPage = ({ onBack, onNavigate, authUser }) => {
 };
 
 // Settings page with various options and a logout button, accessible from the home page.
-const SettingsPage = ({ onBack, onLogout }) => {
+const SettingsPage = ({ onBack, onLogout, authUser, themeMode, onChangeTheme, notifications }) => {
   const settings = [
     { id: 'account', label: 'Account', icon: '👤' },
     { id: 'notifications', label: 'Notifications', icon: '🔔' },
@@ -792,6 +1125,103 @@ const SettingsPage = ({ onBack, onLogout }) => {
     { id: 'theme', label: 'Theme', icon: '🎨' },
     { id: 'help', label: 'Help', icon: '❓' },
   ];
+  const [activeSetting, setActiveSetting] = useState(null);
+
+  const renderSettingContent = () => {
+    if (activeSetting === 'account') {
+      return (
+        <div className="settings-detail-card">
+          <h3 className="settings-detail-title">Account Information</h3>
+          <div className="settings-detail-row">
+            <span>Email</span>
+            <strong>{authUser?.email || 'Not available'}</strong>
+          </div>
+          <div className="settings-detail-row">
+            <span>Username</span>
+            <strong>{authUser?.username || 'Not set'}</strong>
+          </div>
+          <div className="settings-detail-row">
+            <span>Account Status</span>
+            <strong>Active</strong>
+          </div>
+        </div>
+      );
+    }
+
+    if (activeSetting === 'notifications') {
+      return (
+        <div className="settings-detail-card">
+          <h3 className="settings-detail-title">Notifications</h3>
+          {notifications.length === 0 ? (
+            <p className="settings-detail-empty">No notifications yet. Match updates will appear here.</p>
+          ) : (
+            <div className="settings-notification-list">
+              {notifications.map((note) => (
+                <div key={note.id} className="settings-notification-item">
+                  <div>
+                    <strong>{note.title}</strong>
+                    <p>{note.message}</p>
+                  </div>
+                  <span>{new Date(note.createdAt).toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (activeSetting === 'privacy') {
+      return (
+        <div className="settings-detail-card">
+          <h3 className="settings-detail-title">Privacy</h3>
+          <ul className="settings-detail-list">
+            <li>Your login credentials are never shown in plain text.</li>
+            <li>Only essential account data is stored for core app features.</li>
+            <li>Session data expires after inactivity for additional safety.</li>
+            <li>Sensitive keys are managed on backend environment variables.</li>
+            <li>You can request account data updates or deletion from support.</li>
+          </ul>
+        </div>
+      );
+    }
+
+    if (activeSetting === 'theme') {
+      return (
+        <div className="settings-detail-card">
+          <h3 className="settings-detail-title">Theme</h3>
+          <p className="settings-detail-empty">Choose your preferred app background style.</p>
+          <div className="settings-theme-actions">
+            <button
+              className={`settings-theme-btn ${themeMode === 'dark' ? 'active' : ''}`}
+              onClick={() => onChangeTheme('dark')}
+            >
+              Deep Navy
+            </button>
+            <button
+              className={`settings-theme-btn ${themeMode === 'beige' ? 'active' : ''}`}
+              onClick={() => onChangeTheme('beige')}
+            >
+              Warm Beige
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="settings-detail-card">
+        <h3 className="settings-detail-title">Help</h3>
+        <ul className="settings-detail-list">
+          <li>Use Match Up to build your team and simulate game outcomes.</li>
+          <li>Check Notifications for match results and important updates.</li>
+          <li>If stats fail to load, refresh the page and verify your connection.</li>
+          <li>For login issues, verify email and password, then retry.</li>
+          <li>Contact support if an issue persists after retrying.</li>
+        </ul>
+      </div>
+    );
+  };
 
   return (
     <div className="settings-page">
@@ -811,36 +1241,48 @@ const SettingsPage = ({ onBack, onLogout }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <div className="settings-menu">
-            {settings.map((option, index) => (
-              <motion.div
-                key={option.id}
-                className="settings-item"
-                initial={{ x: -20, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.1 * index }}
+          {activeSetting ? (
+            <>
+              <button className="view-all-btn" onClick={() => setActiveSetting(null)}>
+                ← Back to Settings
+              </button>
+              {renderSettingContent()}
+            </>
+          ) : (
+            <>
+              <div className="settings-menu">
+                {settings.map((option, index) => (
+                  <motion.div
+                    key={option.id}
+                    className="settings-item"
+                    onClick={() => setActiveSetting(option.id)}
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 0.1 * index }}
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    <div className="settings-item-content">
+                      <span className="settings-icon">{option.icon}</span>
+                      <span className="settings-label">{option.label}</span>
+                    </div>
+                    <span className="settings-arrow">›</span>
+                  </motion.div>
+                ))}
+              </div>
+
+              <motion.button
+                className="logout-btn"
+                onClick={onLogout}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
                 whileHover={{ scale: 1.02 }}
               >
-                <div className="settings-item-content">
-                  <span className="settings-icon">{option.icon}</span>
-                  <span className="settings-label">{option.label}</span>
-                </div>
-                <span className="settings-arrow">›</span>
-              </motion.div>
-            ))}
-          </div>
-
-          <motion.button
-            className="logout-btn"
-            onClick={onLogout}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            whileHover={{ scale: 1.02 }}
-          >
-            <span>🚪</span>
-            <span>Log Out</span>
-          </motion.button>
+                <span>🚪</span>
+                <span>Log Out</span>
+              </motion.button>
+            </>
+          )}
         </motion.div>
       </main>
     </div>
@@ -849,10 +1291,95 @@ const SettingsPage = ({ onBack, onLogout }) => {
 
 function App() {
   const [page, setPage] = useState('login');
+  const [themeMode, setThemeMode] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'dark');
   const [authState, setAuthState] = useState({
     user: null,
     accessToken: null,
   });
+  const [notifications, setNotifications] = useState(() => {
+    try {
+      const raw = localStorage.getItem(NOTIFICATIONS_STORAGE_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', themeMode);
+    localStorage.setItem(THEME_STORAGE_KEY, themeMode);
+  }, [themeMode]);
+
+  useEffect(() => {
+    const now = Date.now();
+    const lastActivityRaw = localStorage.getItem(LAST_ACTIVITY_KEY);
+    const lastActivity = lastActivityRaw ? Number(lastActivityRaw) : now;
+    const isIdleTooLong = now - lastActivity > IDLE_TIMEOUT_MS;
+
+    if (isIdleTooLong) {
+      localStorage.removeItem(SESSION_STORAGE_KEY);
+      localStorage.setItem(LAST_ACTIVITY_KEY, String(now));
+      setPage('login');
+      setAuthState({ user: null, accessToken: null });
+      return;
+    }
+
+    const rawSession = localStorage.getItem(SESSION_STORAGE_KEY);
+    if (!rawSession) {
+      localStorage.setItem(LAST_ACTIVITY_KEY, String(now));
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(rawSession);
+      const storedAuth = parsed?.authState || { user: null, accessToken: null };
+      const storedPage = parsed?.page || 'home';
+
+      if (storedAuth?.accessToken) {
+        setAuthState(storedAuth);
+        setPage(storedPage);
+      }
+    } catch {
+      localStorage.removeItem(SESSION_STORAGE_KEY);
+      setPage('login');
+      setAuthState({ user: null, accessToken: null });
+    }
+
+    localStorage.setItem(LAST_ACTIVITY_KEY, String(now));
+  }, []);
+
+  useEffect(() => {
+    const updateActivity = () => {
+      localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()));
+    };
+
+    const events = ['click', 'keydown', 'mousemove', 'scroll', 'touchstart'];
+    events.forEach((eventName) => window.addEventListener(eventName, updateActivity, { passive: true }));
+    updateActivity();
+
+    return () => {
+      events.forEach((eventName) => window.removeEventListener(eventName, updateActivity));
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!authState?.accessToken) {
+      localStorage.removeItem(SESSION_STORAGE_KEY);
+      return;
+    }
+
+    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ page, authState }));
+  }, [page, authState]);
+
+  useEffect(() => {
+    localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(notifications));
+  }, [notifications]);
+
+  const addNotification = (notification) => {
+    setNotifications((current) => [notification, ...current].slice(0, 25));
+  };
 
   // On login/signup success, persist user + token and move to home screen.
   const handleLogin = (payload) => {
@@ -870,6 +1397,8 @@ function App() {
       accessToken: null,
     });
     setPage('login');
+    localStorage.removeItem(SESSION_STORAGE_KEY);
+    localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()));
   };
 
   // Render one page at a time based on current app state.
@@ -893,8 +1422,25 @@ function App() {
       {page === 'stats' && (
         <StatsPage key="stats" onBack={() => setPage('home')} onNavigate={setPage} authUser={authState.user} />
       )}
+      {page === 'matchup' && (
+        <MatchupPage
+          key="matchup"
+          onBack={() => setPage('stats')}
+          onNavigate={setPage}
+          authUser={authState.user}
+          onNewNotification={addNotification}
+        />
+      )}
       {page === 'settings' && (
-        <SettingsPage key="settings" onBack={() => setPage('home')} onLogout={handleLogout} />
+        <SettingsPage
+          key="settings"
+          onBack={() => setPage('home')}
+          onLogout={handleLogout}
+          authUser={authState.user}
+          themeMode={themeMode}
+          onChangeTheme={setThemeMode}
+          notifications={notifications}
+        />
       )}
     </AnimatePresence>
   );
