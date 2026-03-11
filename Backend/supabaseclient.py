@@ -17,7 +17,9 @@ def get_supabase_client() -> Client:
     - SUPABASE_URL
     - SUPABASE_SERVICE_ROLE_KEY (preferred) or SUPABASE_KEY (legacy fallback)
     """
+    # Read from env so secrets stay out of code and git history.
     url = os.getenv("SUPABASE_URL")
+    # Legacy fallback is kept so old local setups do not break instantly.
     key = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_KEY")
 
     if not url:
