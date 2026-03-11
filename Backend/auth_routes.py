@@ -16,6 +16,26 @@ AUTH_MANAGED_PASSWORD_HASH = "SUPABASE_AUTH_MANAGED"
 MIN_PASSWORD_LENGTH = 8
 
 
+def _get_auth_payload():
+    """Parse auth request JSON in one place so errors stay consistent."""
+    # Tiny guardrail so random form posts do not crash weirdly.
+    if not request.is_json:
+        return None, bad_request(
+            ErrorCodes.INVALID_REQUEST,
+            "Content-Type must be application/json",
+        )
+
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        # Keeping this message simple for frontend display.
+        return None, bad_request(
+            ErrorCodes.INVALID_REQUEST,
+            "Request body must be a valid JSON object",
+        )
+
+    return payload, None
+
+
 def _is_debug_mode():
     """Return True when Flask debug mode is enabled."""
     return bool(current_app.debug)
@@ -126,13 +146,10 @@ def _ensure_local_user(client, auth_user_id, email, preferred_username=None):
 
 @bp.post("/signup")
 def signup():
-    if not request.is_json:
-        return bad_request(
-            ErrorCodes.INVALID_REQUEST,
-            "Content-Type must be application/json",
-        )
+    payload, error_response = _get_auth_payload()
+    if error_response:
+        return error_response
 
-    payload = request.get_json(silent=True) or {}
     email = (payload.get("email") or "").strip().lower()
     password = payload.get("password") or ""
     username = payload.get("username")
@@ -150,7 +167,7 @@ def signup():
         )
 
     try:
-        # Create Supabase client and attempt to sign up the user with Supabase Auth
+        # Step 1: create auth user in Supabase.
         client = get_supabase_client()
         auth_response = client.auth.sign_up({"email": email, "password": password})
 
@@ -161,7 +178,7 @@ def signup():
                 "Signup failed. Check email/password or Supabase auth settings.",
             )
 
-        # Extract the Supabase auth user ID and email, ensuring we have a valid user ID to work with
+        # Step 2: pull core identity fields from auth response.
         auth_user_id = _extract_attr(auth_user, "id")
         auth_email = _extract_attr(auth_user, "email") or email
         if not auth_user_id:
@@ -170,9 +187,9 @@ def signup():
                 "Supabase signup returned no user ID.",
             )
 
-        # Ensure there is a corresponding local User record for this Supabase auth user, creating one if necessary
+        # Step 3: keep local users table synced with auth user.
         local_user = _ensure_local_user(client, str(auth_user_id), auth_email, username)
-        # Extract the session information from the Supabase auth response to return access and refresh tokens
+        # Step 4: pass session data back so frontend can log in right away.
         session = _extract_attr(auth_response, "session")
 
         return jsonify(
@@ -212,13 +229,10 @@ def signup():
 
 @bp.post("/login")
 def login():
-    if not request.is_json:
-        return bad_request(
-            ErrorCodes.INVALID_REQUEST,
-            "Content-Type must be application/json",
-        )
+    payload, error_response = _get_auth_payload()
+    if error_response:
+        return error_response
 
-    payload = request.get_json(silent=True) or {}
     email = (payload.get("email") or "").strip().lower()
     password = payload.get("password") or ""
 
