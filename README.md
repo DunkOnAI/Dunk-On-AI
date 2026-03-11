@@ -187,3 +187,12 @@ Basketball-Fantasy-Helper/
 2. Register it in `Backend/__init__.py` inside `create_app`
 3. Get the Supabase client at the top of each endpoint with `client = get_supabase_client()`
 4. Use `client.table("your_table").select/insert/update/delete(...)` for all DB access
+
+## Backend Status
+
+Current backend integration pass is complete:
+
+- auth endpoints working (`/api/auth/signup`, `/api/auth/login`)
+- roster endpoints validated + bulk add checks improved
+- Supabase env loading integrated for local `.env` usage
+- backend smoke test script added (`Backend/smoke_test_backend.sh`)
