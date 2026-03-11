@@ -39,6 +39,18 @@ flask --app "Backend:create_app" run --debug
 
 Flask starts on `http://127.0.0.1:5000`.
 
+Quick backend smoke test:
+
+```bash
+bash Backend/smoke_test_backend.sh
+```
+
+If your backend runs on a different port:
+
+```bash
+BASE_URL=http://127.0.0.1:5001 bash Backend/smoke_test_backend.sh
+```
+
 ### 3. Frontend (React + Vite)
 
 ```bash
