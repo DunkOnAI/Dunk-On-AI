@@ -6,6 +6,7 @@ const SESSION_STORAGE_KEY = 'dunk_on_ai_session';
 const LAST_ACTIVITY_KEY = 'dunk_on_ai_last_activity';
 const THEME_STORAGE_KEY = 'dunk_on_ai_theme';
 const NOTIFICATIONS_STORAGE_KEY = 'dunk_on_ai_notifications';
+const ROSTER_STORAGE_KEY = 'dunk_on_ai_roster';
 const IDLE_TIMEOUT_MS = 10 * 60 * 1000;
 
 const parseApiPayload = async (response) => {
@@ -24,6 +25,14 @@ const parseApiPayload = async (response) => {
 const getApiErrorMessage = (payload, fallbackMessage) => {
   const baseMessage = payload?.error?.message || payload?.raw || fallbackMessage;
   const debugDetails = payload?.error?.debug;
+  const normalizedMessage = typeof baseMessage === 'string' ? baseMessage.toLowerCase() : '';
+
+  if (
+    normalizedMessage.includes('supabase_url is not set')
+    || normalizedMessage.includes('supabase_service_role_key is not set')
+  ) {
+    return 'Server auth is not configured. Add SUPABASE_URL and SUPABASE_KEY or SUPABASE_SERVICE_ROLE_KEY to the repo root .env file, then restart Flask.';
+  }
 
   if (!debugDetails) {
     return baseMessage;
@@ -121,15 +130,145 @@ const ROSTER_PLAYERS = [
     sport: 'basketball',
     trend: 'up',
   },
+  {
+    id: 8,
+    name: 'Bryce Cole',
+    number: 3,
+    pts: 15.4,
+    reb: 4.8,
+    ast: 6.1,
+    position: 'PG',
+    team: 'Your Team',
+    sport: 'basketball',
+    trend: 'up',
+  },
+  {
+    id: 9,
+    name: 'Damien Brooks',
+    number: 14,
+    pts: 18.9,
+    reb: 5.3,
+    ast: 3.4,
+    position: 'SF',
+    team: 'Your Team',
+    sport: 'basketball',
+    trend: 'stable',
+  },
+  {
+    id: 10,
+    name: 'Victor Hale',
+    number: 27,
+    pts: 13.6,
+    reb: 9.4,
+    ast: 2.5,
+    position: 'PF',
+    team: 'Your Team',
+    sport: 'basketball',
+    trend: 'down',
+  },
+  {
+    id: 11,
+    name: 'Eli Turner',
+    number: 6,
+    pts: 11.8,
+    reb: 3.7,
+    ast: 7.6,
+    position: 'SG',
+    team: 'Your Team',
+    sport: 'basketball',
+    trend: 'up',
+  },
+  {
+    id: 12,
+    name: 'Caleb Stone',
+    number: 50,
+    pts: 10.9,
+    reb: 10.8,
+    ast: 1.8,
+    position: 'C',
+    team: 'Your Team',
+    sport: 'basketball',
+    trend: 'stable',
+  },
 ];
 
-const getLineupSizeBySport = (sport) => {
-  const normalized = (sport || '').toLowerCase();
-  if (normalized === 'football') return 11;
-  if (normalized === 'basketball') return 5;
-  if (normalized === 'volleyball') return 6;
-  return 5;
-};
+const PLAYER_SEARCH_POOL = [
+  {
+    id: 201,
+    name: 'Miles Carter',
+    number: 9,
+    pts: 21.7,
+    reb: 5.4,
+    ast: 6.8,
+    position: 'PG',
+    team: 'Falcons',
+    sport: 'basketball',
+    trend: 'up',
+  },
+  {
+    id: 202,
+    name: 'Andre Mason',
+    number: 18,
+    pts: 17.2,
+    reb: 7.9,
+    ast: 2.6,
+    position: 'PF',
+    team: 'Sharks',
+    sport: 'basketball',
+    trend: 'stable',
+  },
+  {
+    id: 203,
+    name: 'Jordan Pike',
+    number: 1,
+    pts: 24.3,
+    reb: 4.2,
+    ast: 5.1,
+    position: 'SG',
+    team: 'Wolves',
+    sport: 'basketball',
+    trend: 'up',
+  },
+  {
+    id: 204,
+    name: 'Isaac Rowe',
+    number: 33,
+    pts: 12.7,
+    reb: 11.4,
+    ast: 1.9,
+    position: 'C',
+    team: 'Knights',
+    sport: 'basketball',
+    trend: 'stable',
+  },
+  {
+    id: 205,
+    name: 'Nate Rivers',
+    number: 22,
+    pts: 16.6,
+    reb: 6.1,
+    ast: 4.4,
+    position: 'SF',
+    team: 'Storm',
+    sport: 'basketball',
+    trend: 'down',
+  },
+  {
+    id: 206,
+    name: 'Leo Vaughn',
+    number: 12,
+    pts: 14.9,
+    reb: 3.8,
+    ast: 8.2,
+    position: 'PG',
+    team: 'Royals',
+    sport: 'basketball',
+    trend: 'up',
+  },
+];
+
+const ALL_PLAYERS = [...ROSTER_PLAYERS, ...PLAYER_SEARCH_POOL];
+const MATCHUP_TEAM_SIZE = 11;
 
 // Reusable animated auth screen wrapper for both login and signup.
 const AuthScene = ({ title, subtitle, children }) => (
@@ -675,11 +814,22 @@ const HomePage = ({ authUser, onLogout, onSettings, onNavigate }) => {
 };
 
 // Player stats page with roster, analytics, and year selector.
-const StatsPage = ({ onBack, onNavigate, authUser }) => {
+const StatsPage = ({ onBack, onNavigate, authUser, rosterPlayers, playerSearchTerm, onPlayerSearchChange, onAddPlayer, onRemovePlayer }) => {
   const [selectedYear, setSelectedYear] = useState('2024');
-  const players = ROSTER_PLAYERS;
+  const players = rosterPlayers;
 
   const years = ['2024', '2023', '2022', '2021'];
+  const normalizedSearch = playerSearchTerm.trim().toLowerCase();
+  const availablePlayers = ALL_PLAYERS.filter((player) => {
+    const alreadyOnRoster = players.some((rosterPlayer) => rosterPlayer.id === player.id);
+    if (alreadyOnRoster) return false;
+    if (!normalizedSearch) return true;
+    return (
+      player.name.toLowerCase().includes(normalizedSearch)
+      || player.position.toLowerCase().includes(normalizedSearch)
+      || player.team.toLowerCase().includes(normalizedSearch)
+    );
+  });
 
   const getTrendIcon = (trend) => {
     if (trend === 'up') return '📈';
@@ -720,7 +870,66 @@ const StatsPage = ({ onBack, onNavigate, authUser }) => {
 
         {/* Players List */}
         <div className="players-section">
-          <h3 className="section-title">Your Team Roster</h3>
+          <div className="section-header">
+            <h3 className="section-title">Your Team Roster</h3>
+            <span className="matchup-search-count">{players.length} players</span>
+          </div>
+
+          <div className="roster-management-panel">
+            <div className="matchup-search-row">
+              <input
+                type="text"
+                className="matchup-search-input"
+                placeholder="Search players to add"
+                value={playerSearchTerm}
+                onChange={(event) => onPlayerSearchChange(event.target.value)}
+              />
+            </div>
+            <div className="matchup-management-columns">
+              <div className="matchup-management-section">
+                <div className="matchup-management-header">
+                  <h4>Available Players</h4>
+                  <span>{availablePlayers.length}</span>
+                </div>
+                <div className="matchup-search-results">
+                  {availablePlayers.length > 0 ? availablePlayers.map((player) => (
+                    <div key={player.id} className="matchup-search-item">
+                      <div>
+                        <div className="player-name">{player.name}</div>
+                        <div className="player-position">{player.position} • {player.team}</div>
+                      </div>
+                      <button className="roster-action-btn add" onClick={() => onAddPlayer(player)}>
+                        Add Player
+                      </button>
+                    </div>
+                  )) : (
+                    <p className="matchup-empty-state">No available players match that search.</p>
+                  )}
+                </div>
+              </div>
+              <div className="matchup-management-section">
+                <div className="matchup-management-header">
+                  <h4>Current Roster</h4>
+                  <span>{players.length}</span>
+                </div>
+                <div className="matchup-search-results">
+                  {players.length > 0 ? players.map((player) => (
+                    <div key={player.id} className="matchup-search-item">
+                      <div>
+                        <div className="player-name">{player.name}</div>
+                        <div className="player-position">{player.position} • {player.team}</div>
+                      </div>
+                      <button className="roster-action-btn remove" onClick={() => onRemovePlayer(player.id)}>
+                        Remove Player
+                      </button>
+                    </div>
+                  )) : (
+                    <p className="matchup-empty-state">Your roster is currently empty.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div className="players-list">
             {players.map((player, index) => (
@@ -757,6 +966,11 @@ const StatsPage = ({ onBack, onNavigate, authUser }) => {
                   </div>
                   <div className="stat-item">
                     <span className="trend-icon">{getTrendIcon(player.trend)}</span>
+                  </div>
+                  <div className="stat-item stat-action">
+                    <button className="roster-action-btn remove" onClick={() => onRemovePlayer(player.id)}>
+                      Remove Player
+                    </button>
                   </div>
                 </div>
               </motion.div>
@@ -835,7 +1049,17 @@ const StatsPage = ({ onBack, onNavigate, authUser }) => {
   );
 };
 
-const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification }) => {
+const MatchupPage = ({
+  onBack,
+  onNavigate,
+  authUser,
+  onNewNotification,
+  rosterPlayers,
+  playerSearchTerm,
+  onPlayerSearchChange,
+  onAddPlayer,
+  onRemovePlayer,
+}) => {
   const aiPool = [
     { id: 101, name: 'Orion Blaze', number: 2, position: 'PG', pts: 22.4, reb: 4.1, ast: 9.2 },
     { id: 102, name: 'Kai Mercer', number: 11, position: 'SG', pts: 26.8, reb: 5.0, ast: 4.9 },
@@ -847,14 +1071,43 @@ const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification }) => {
     { id: 108, name: 'Jett Cross', number: 19, position: 'SG', pts: 17.4, reb: 4.0, ast: 3.9 },
     { id: 109, name: 'Axel Grant', number: 44, position: 'PF', pts: 16.8, reb: 9.6, ast: 2.3 },
     { id: 110, name: 'Nico Dunn', number: 31, position: 'C', pts: 14.1, reb: 11.5, ast: 1.9 },
+    { id: 111, name: 'Troy Bennett', number: 8, position: 'SF', pts: 19.5, reb: 6.3, ast: 4.0 },
+    { id: 112, name: 'Silas Moore', number: 17, position: 'SG', pts: 18.8, reb: 4.7, ast: 5.2 },
+    { id: 113, name: 'Gavin Price', number: 28, position: 'PF', pts: 13.4, reb: 9.9, ast: 2.1 },
   ];
-  const teamSport = (ROSTER_PLAYERS[0]?.sport || 'basketball').toLowerCase();
-  const lineupSizeBySport = getLineupSizeBySport(teamSport);
-  const TEAM_SIZE = Math.min(lineupSizeBySport, ROSTER_PLAYERS.length, aiPool.length);
+  const TEAM_SIZE = Math.min(MATCHUP_TEAM_SIZE, aiPool.length);
+  const normalizedSearch = playerSearchTerm.trim().toLowerCase();
+  const availablePlayers = ALL_PLAYERS.filter((player) => {
+    const alreadyOnRoster = rosterPlayers.some((rosterPlayer) => rosterPlayer.id === player.id);
+    if (alreadyOnRoster) return false;
+    if (!normalizedSearch) return true;
+    return (
+      player.name.toLowerCase().includes(normalizedSearch)
+      || player.position.toLowerCase().includes(normalizedSearch)
+      || player.team.toLowerCase().includes(normalizedSearch)
+    );
+  });
 
   const [selectedPlayerIds, setSelectedPlayerIds] = useState(() =>
-    ROSTER_PLAYERS.slice(0, TEAM_SIZE).map((player) => player.id)
+    rosterPlayers.slice(0, TEAM_SIZE).map((player) => player.id)
   );
+  useEffect(() => {
+    setSelectedPlayerIds((current) => {
+      const validIds = current.filter((id) => rosterPlayers.some((player) => player.id === id));
+      if (validIds.length >= TEAM_SIZE) {
+        return validIds.slice(0, TEAM_SIZE);
+      }
+
+      const nextIds = [...validIds];
+      rosterPlayers.forEach((player) => {
+        if (nextIds.length < TEAM_SIZE && !nextIds.includes(player.id)) {
+          nextIds.push(player.id);
+        }
+      });
+      return nextIds;
+    });
+  }, [rosterPlayers, TEAM_SIZE]);
+
   const generateAiTeam = () => {
     const shuffled = [...aiPool].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, TEAM_SIZE);
@@ -864,7 +1117,7 @@ const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification }) => {
   const [matchupNotice, setMatchupNotice] = useState(`Build your ${TEAM_SIZE}-player team, then tap Simulate.`);
   const resultRef = useRef(null);
 
-  const selectedTeam = ROSTER_PLAYERS.filter((player) => selectedPlayerIds.includes(player.id));
+  const selectedTeam = rosterPlayers.filter((player) => selectedPlayerIds.includes(player.id));
 
   const summarizeTeam = (teamPlayers) => {
     const totals = teamPlayers.reduce((acc, player) => ({
@@ -973,11 +1226,7 @@ const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification }) => {
 
       <main className="stats-main">
         {authUser ? <p className="signed-in-label">Signed in as {authUser.email}</p> : null}
-        {TEAM_SIZE < lineupSizeBySport ? (
-          <p className="signed-in-label">
-            Team rule: {teamSport} needs {lineupSizeBySport}, available pool allows {TEAM_SIZE}.
-          </p>
-        ) : null}
+        {rosterPlayers.length < MATCHUP_TEAM_SIZE ? <p className="signed-in-label">Add more players to reach the full 11-player matchup lineup.</p> : null}
 
         <section className="matchup-hero-card">
           <div className="matchup-teams-row">
@@ -1010,34 +1259,72 @@ const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification }) => {
               <button className="view-all-btn" onClick={runSimulation}>Simulate</button>
             </div>
           </div>
-          <p className="matchup-hint">{matchupNotice} Selected: {selectedPlayerIds.length}/{TEAM_SIZE}</p>
-          <div className="players-list">
-            {ROSTER_PLAYERS.map((player, index) => {
-              const isSelected = selectedPlayerIds.includes(player.id);
-              return (
-                <motion.div
-                  key={player.id}
-                  className={`player-card matchup-select-card ${isSelected ? 'selected' : ''}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.08 }}
-                  whileHover={{ scale: 1.02 }}
-                  onClick={() => togglePlayerSelection(player.id)}
-                >
-                  <div className="player-avatar-section">
-                    <div className="player-avatar-stats">
-                      <div className="jersey-number">{player.number}</div>
+          <div className="roster-management-panel">
+            <div className="matchup-search-row">
+              <input
+                type="text"
+                className="matchup-search-input"
+                placeholder="Search players to add"
+                value={playerSearchTerm}
+                onChange={(event) => onPlayerSearchChange(event.target.value)}
+              />
+            </div>
+            <div className="matchup-management-columns">
+              <div className="matchup-management-section">
+                <div className="matchup-management-header">
+                  <h4>Available Players</h4>
+                  <span>{availablePlayers.length}</span>
+                </div>
+                <div className="matchup-search-results">
+                  {availablePlayers.length > 0 ? availablePlayers.map((player) => (
+                    <div key={player.id} className="matchup-search-item">
+                      <div>
+                        <div className="player-name">{player.name}</div>
+                        <div className="player-position">{player.position} • {player.team}</div>
+                      </div>
+                      <button className="roster-action-btn add" onClick={() => onAddPlayer(player)}>
+                        Add Player
+                      </button>
                     </div>
-                    <div className="player-info">
-                      <div className="player-name">{player.name}</div>
-                      <div className="player-position">{player.position} • {player.pts} PTS</div>
+                  )) : (
+                    <p className="matchup-empty-state">No available players match that search.</p>
+                  )}
+                </div>
+              </div>
+              <div className="matchup-management-section">
+                <div className="matchup-management-header">
+                  <h4>Current Roster</h4>
+                  <span>{rosterPlayers.length}</span>
+                </div>
+                <div className="matchup-search-results">
+                  {rosterPlayers.length > 0 ? rosterPlayers.map((player) => (
+                    <div
+                      key={player.id}
+                      className={`matchup-search-item ${selectedPlayerIds.includes(player.id) ? 'selected' : ''}`}
+                      onClick={() => togglePlayerSelection(player.id)}
+                    >
+                      <div>
+                        <div className="player-name">{player.name}</div>
+                        <div className="player-position">{player.position} • {player.team}</div>
+                      </div>
+                      <button
+                        className="roster-action-btn remove"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onRemovePlayer(player.id);
+                        }}
+                      >
+                        Remove Player
+                      </button>
                     </div>
-                    <div className="matchup-checkbox">{isSelected ? '✓' : '+'}</div>
-                  </div>
-                </motion.div>
-              );
-            })}
+                  )) : (
+                    <p className="matchup-empty-state">Your roster is currently empty.</p>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
+          <p className="matchup-hint">{matchupNotice} Selected: {selectedPlayerIds.length}/{TEAM_SIZE}</p>
         </section>
 
         <section className="team-stats-section">
@@ -1292,6 +1579,17 @@ const SettingsPage = ({ onBack, onLogout, authUser, themeMode, onChangeTheme, no
 function App() {
   const [page, setPage] = useState('login');
   const [themeMode, setThemeMode] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'dark');
+  const [rosterPlayers, setRosterPlayers] = useState(() => {
+    try {
+      const raw = localStorage.getItem(ROSTER_STORAGE_KEY);
+      if (!raw) return ROSTER_PLAYERS;
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : ROSTER_PLAYERS;
+    } catch {
+      return ROSTER_PLAYERS;
+    }
+  });
+  const [playerSearchTerm, setPlayerSearchTerm] = useState('');
   const [authState, setAuthState] = useState({
     user: null,
     accessToken: null,
@@ -1377,8 +1675,21 @@ function App() {
     localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(notifications));
   }, [notifications]);
 
+  useEffect(() => {
+    localStorage.setItem(ROSTER_STORAGE_KEY, JSON.stringify(rosterPlayers));
+  }, [rosterPlayers]);
+
   const addNotification = (notification) => {
     setNotifications((current) => [notification, ...current].slice(0, 25));
+  };
+
+  const handleAddPlayer = (player) => {
+    setRosterPlayers((current) => (current.some((item) => item.id === player.id) ? current : [...current, player]));
+    setPlayerSearchTerm('');
+  };
+
+  const handleRemovePlayer = (playerId) => {
+    setRosterPlayers((current) => current.filter((player) => player.id !== playerId));
   };
 
   // On login/signup success, persist user + token and move to home screen.
@@ -1420,7 +1731,17 @@ function App() {
         />
       )}
       {page === 'stats' && (
-        <StatsPage key="stats" onBack={() => setPage('home')} onNavigate={setPage} authUser={authState.user} />
+        <StatsPage
+          key="stats"
+          onBack={() => setPage('home')}
+          onNavigate={setPage}
+          authUser={authState.user}
+          rosterPlayers={rosterPlayers}
+          playerSearchTerm={playerSearchTerm}
+          onPlayerSearchChange={setPlayerSearchTerm}
+          onAddPlayer={handleAddPlayer}
+          onRemovePlayer={handleRemovePlayer}
+        />
       )}
       {page === 'matchup' && (
         <MatchupPage
@@ -1429,6 +1750,11 @@ function App() {
           onNavigate={setPage}
           authUser={authState.user}
           onNewNotification={addNotification}
+          rosterPlayers={rosterPlayers}
+          playerSearchTerm={playerSearchTerm}
+          onPlayerSearchChange={setPlayerSearchTerm}
+          onAddPlayer={handleAddPlayer}
+          onRemovePlayer={handleRemovePlayer}
         />
       )}
       {page === 'settings' && (
