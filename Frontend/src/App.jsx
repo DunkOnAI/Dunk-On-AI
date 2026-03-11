@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from './supabaseClient';
 import './index.css';
 
 const SESSION_STORAGE_KEY = 'dunk_on_ai_session';
@@ -36,92 +37,6 @@ const getApiErrorMessage = (payload, fallbackMessage) => {
   return `${baseMessage} (${debugMessage})`;
 };
 
-const ROSTER_PLAYERS = [
-  {
-    id: 1,
-    name: 'Ethan Knox',
-    number: 10,
-    pts: 28.5,
-    reb: 7.2,
-    ast: 5.8,
-    position: 'SF',
-    team: 'Your Team',
-    sport: 'basketball',
-    trend: 'up',
-  },
-  {
-    id: 2,
-    name: 'Jalen Ford',
-    number: 23,
-    pts: 24.1,
-    reb: 4.5,
-    ast: 8.9,
-    position: 'PG',
-    team: 'Your Team',
-    sport: 'basketball',
-    trend: 'up',
-  },
-  {
-    id: 3,
-    name: 'Marco Lane',
-    number: 7,
-    pts: 19.7,
-    reb: 9.8,
-    ast: 2.1,
-    position: 'C',
-    team: 'Your Team',
-    sport: 'basketball',
-    trend: 'down',
-  },
-  {
-    id: 4,
-    name: 'Oliver Tate',
-    number: 15,
-    pts: 16.3,
-    reb: 3.9,
-    ast: 4.2,
-    position: 'SG',
-    team: 'Your Team',
-    sport: 'basketball',
-    trend: 'stable',
-  },
-  {
-    id: 5,
-    name: 'Tyler Briggs',
-    number: 32,
-    pts: 14.8,
-    reb: 8.1,
-    ast: 1.7,
-    position: 'PF',
-    team: 'Your Team',
-    sport: 'basketball',
-    trend: 'up',
-  },
-  {
-    id: 6,
-    name: 'Noah Reed',
-    number: 8,
-    pts: 17.9,
-    reb: 6.4,
-    ast: 3.7,
-    position: 'SG',
-    team: 'Your Team',
-    sport: 'basketball',
-    trend: 'stable',
-  },
-  {
-    id: 7,
-    name: 'Luca Hayes',
-    number: 41,
-    pts: 12.6,
-    reb: 11.1,
-    ast: 2.9,
-    position: 'C',
-    team: 'Your Team',
-    sport: 'basketball',
-    trend: 'up',
-  },
-];
 
 const getLineupSizeBySport = (sport) => {
   const normalized = (sport || '').toLowerCase();
@@ -674,18 +589,250 @@ const HomePage = ({ authUser, onLogout, onSettings, onNavigate }) => {
   );
 };
 
-// Player stats page with roster, analytics, and year selector.
-const StatsPage = ({ onBack, onNavigate, authUser }) => {
-  const [selectedYear, setSelectedYear] = useState('2024');
-  const players = ROSTER_PLAYERS;
+const PAGE_SIZE = 8;
 
-  const years = ['2024', '2023', '2022', '2021'];
+const TEAM_LIMIT = 5;
 
-  const getTrendIcon = (trend) => {
-    if (trend === 'up') return '📈';
-    if (trend === 'down') return '📉';
-    return '➡️';
+// Player stats page — shows all players with stats, lets user tap to select then add to roster.
+const StatsPage = ({ onBack, onNavigate, authUser, onRosterSaved }) => {
+  const [players, setPlayers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [currentPage, setCurrentPage] = useState(0);
+  // IDs already saved in the user's roster.
+  const [rosterIds, setRosterIds] = useState([]);
+  // IDs the user has tapped but not yet added (pending selection).
+  const [pendingIds, setPendingIds] = useState([]);
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  // Player detail subpage
+  const [subPage, setSubPage] = useState('list');
+  const [detailPlayer, setDetailPlayer] = useState(null);
+  const [gameLog, setGameLog] = useState([]);
+  const [gameLogLoading, setGameLogLoading] = useState(false);
+
+  useEffect(() => {
+    if (!authUser) return;
+
+    const load = async () => {
+      setLoading(true);
+      setLoadError('');
+      try {
+        const [playersResult, rosterResult] = await Promise.all([
+          supabase
+            .from('players')
+            .select('id, name, position, teams(name), game_stats(points, rebounds, assists, steals, blocks)')
+            .order('name', { ascending: true }),
+          supabase.from('user_team_players').select('player_id').eq('user_id', authUser.id),
+        ]);
+
+        if (playersResult.error) {
+          console.error('players query error:', playersResult.error);
+          setLoadError(playersResult.error.message || 'Failed to load players.');
+          setPlayers([]);
+          return;
+        }
+
+        if (rosterResult.data?.length) {
+          setRosterIds(rosterResult.data.map((r) => r.player_id));
+        }
+
+        setPlayers((playersResult.data || []).map((player) => {
+          const stats = player.game_stats || [];
+          const games = stats.length;
+          const totals = stats.reduce((acc, g) => ({
+            pts: acc.pts + (g.points || 0),
+            reb: acc.reb + (g.rebounds || 0),
+            ast: acc.ast + (g.assists || 0),
+            stl: acc.stl + (g.steals || 0),
+            blk: acc.blk + (g.blocks || 0),
+          }), { pts: 0, reb: 0, ast: 0, stl: 0, blk: 0 });
+          return {
+            player_id: player.id,
+            player_name: player.name ?? 'Unknown',
+            position: player.position ?? '—',
+            team: player.teams?.name ?? 'Unknown Team',
+            games,
+            pts: games ? (totals.pts / games).toFixed(1) : '—',
+            reb: games ? (totals.reb / games).toFixed(1) : '—',
+            ast: games ? (totals.ast / games).toFixed(1) : '—',
+            stl: games ? (totals.stl / games).toFixed(1) : '—',
+            blk: games ? (totals.blk / games).toFixed(1) : '—',
+          };
+        }));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, [authUser]);
+
+  const togglePending = (player) => {
+    if (rosterIds.includes(player.player_id)) return;
+    setSaveMessage('');
+    const rosterPositions = players.filter(p => rosterIds.includes(p.player_id)).map(p => p.position);
+    setPendingIds((prev) => {
+      if (prev.includes(player.player_id)) return prev.filter((id) => id !== player.player_id);
+      if (rosterIds.length + prev.length >= TEAM_LIMIT) return prev;
+      if (rosterPositions.includes(player.position)) {
+        setSaveMessage(`${player.position} is already on your roster.`);
+        return prev;
+      }
+      const pendingPositions = players.filter(p => prev.includes(p.player_id)).map(p => p.position);
+      if (pendingPositions.includes(player.position)) {
+        setSaveMessage(`${player.position} is already selected.`);
+        return prev;
+      }
+      return [...prev, player.player_id];
+    });
   };
+
+  const openDetail = async (player) => {
+    setDetailPlayer(player);
+    setSubPage('detail');
+    setGameLog([]);
+    setGameLogLoading(true);
+    setDetailAddMessage('');
+    const { data } = await supabase
+      .from('game_stats')
+      .select('game_date, points, rebounds, assists, steals, blocks, turnovers, minutes_played')
+      .eq('player_id', player.player_id)
+      .order('game_date', { ascending: false });
+    setGameLog(data || []);
+    setGameLogLoading(false);
+  };
+
+  const [detailAdding, setDetailAdding] = useState(false);
+  const [detailAddMessage, setDetailAddMessage] = useState('');
+
+  const addDetailPlayerToRoster = async (playerId) => {
+    if (!authUser?.id || rosterIds.includes(playerId)) return;
+    if (rosterIds.length + pendingIds.length >= TEAM_LIMIT) {
+      setDetailAddMessage('Roster is full (5 players max).');
+      return;
+    }
+    setDetailAdding(true);
+    setDetailAddMessage('');
+    try {
+      const { error } = await supabase
+        .from('user_team_players')
+        .insert([{ user_id: authUser.id, player_id: playerId, role: 'starter' }]);
+      if (error) throw error;
+      setRosterIds((prev) => [...prev, playerId]);
+      setPendingIds((prev) => prev.filter((id) => id !== playerId));
+      setDetailAddMessage('Added to roster!');
+      if (onRosterSaved) onRosterSaved(authUser.id);
+    } catch (err) {
+      setDetailAddMessage(err.message || 'Failed to add player.');
+    } finally {
+      setDetailAdding(false);
+    }
+  };
+
+  const addToRoster = async () => {
+    if (!authUser?.id || pendingIds.length === 0) return;
+    setSaving(true);
+    setSaveMessage('');
+    try {
+      const { error } = await supabase
+        .from('user_team_players')
+        .insert(pendingIds.map((pid) => ({ user_id: authUser.id, player_id: pid, role: 'starter' })));
+      if (error) throw error;
+
+      // Move pending to roster locally so UI updates immediately.
+      setRosterIds((prev) => [...prev, ...pendingIds]);
+      setPendingIds([]);
+      setSaveMessage('Added to roster!');
+      if (onRosterSaved) onRosterSaved(authUser.id);
+    } catch (err) {
+      console.error('add to roster error:', err);
+      setSaveMessage(err.message || 'Failed to add to roster.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const filteredPlayers = searchQuery.trim()
+    ? players.filter((p) => p.player_name.toLowerCase().includes(searchQuery.toLowerCase()) || p.team.toLowerCase().includes(searchQuery.toLowerCase()))
+    : players;
+  const totalPages = Math.ceil(filteredPlayers.length / PAGE_SIZE);
+  const pagePlayers = filteredPlayers.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
+  const canAdd = pendingIds.length > 0 && !saving;
+
+  // ── Player detail subpage ──────────────────────────────────────────────────
+  if (subPage === 'detail' && detailPlayer) {
+    const inRoster = rosterIds.includes(detailPlayer.player_id);
+    const rosterFull = rosterIds.length >= TEAM_LIMIT;
+    const addBtnLabel = inRoster ? '★ In Roster' : detailAdding ? '...' : rosterFull ? 'Roster Full' : '+ Add to Roster';
+    const addBtnStyle = inRoster
+      ? { background: '#22c55e', color: '#000', borderColor: '#22c55e' }
+      : rosterFull
+        ? { opacity: 0.4, cursor: 'default' }
+        : {};
+    return (
+      <div className="stats-page">
+        <div className="stats-background"><div className="circuit-pattern"></div></div>
+        <header className="page-header">
+          <div className="header-content">
+            <button className="back-btn-new" onClick={() => setSubPage('list')}>←</button>
+            <h1 className="page-title" style={{ fontSize: '1rem' }}>{detailPlayer.player_name}</h1>
+            <button
+              className="view-all-btn"
+              style={{ fontSize: '0.75rem', padding: '5px 10px', ...addBtnStyle }}
+              onClick={() => addDetailPlayerToRoster(detailPlayer.player_id)}
+              disabled={inRoster || detailAdding || rosterFull}
+            >
+              {addBtnLabel}
+            </button>
+          </div>
+        </header>
+        <main className="stats-main">
+          <section className="players-section">
+            <div className="section-header">
+              <h3 className="section-title">Game Log</h3>
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{detailPlayer.position} • {detailPlayer.team}</span>
+            </div>
+            {detailAddMessage && (
+              <p style={{ fontSize: '0.8rem', marginBottom: 8, color: detailAddMessage === 'Added to roster!' ? '#22c55e' : 'var(--error, #f87171)' }}>
+                {detailAddMessage}
+              </p>
+            )}
+            {gameLogLoading && <p className="signed-in-label">Loading games...</p>}
+            {!gameLogLoading && gameLog.length === 0 && (
+              <p className="signed-in-label">No game data available for this player.</p>
+            )}
+            <div className="matchup-ai-list">
+              {gameLog.map((g, i) => (
+                <div key={i} className="matchup-ai-item">
+                  <div className="matchup-ai-left">
+                    <div>
+                      <div className="player-name">{new Date(g.game_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                      <div className="player-position">{g.minutes_played != null ? `${Number(g.minutes_played).toFixed(0)} MIN` : '—'}</div>
+                    </div>
+                  </div>
+                  <div className="matchup-ai-right">
+                    <span>{g.points ?? '—'} PTS</span>
+                    <span>{g.rebounds ?? '—'} REB</span>
+                    <span>{g.assists ?? '—'} AST</span>
+                    <span>{g.steals ?? '—'} STL</span>
+                    <span>{g.blocks ?? '—'} BLK</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        </main>
+        <nav className="bottom-nav">
+          <button className="nav-btn" onClick={() => onNavigate('home')}><span className="icon">🏠</span><span>Home</span></button>
+          <button className="nav-btn active"><span className="icon">📊</span><span>Stats</span></button>
+          <button className="nav-btn" onClick={() => onNavigate('matchup')}><span className="icon">⚔️</span><span>Match Up</span></button>
+          <button className="nav-btn" onClick={() => onNavigate('settings')}><span className="icon">👤</span><span>Profile</span></button>
+        </nav>
+      </div>
+    );
+  }
 
   return (
     <div className="stats-page">
@@ -697,122 +844,160 @@ const StatsPage = ({ onBack, onNavigate, authUser }) => {
         <div className="header-content">
           <button className="back-btn-new" onClick={onBack}>←</button>
           <h1 className="page-title">Player Stats</h1>
-          <div style={{ width: 40 }}></div>
+          <button
+            className="view-all-btn"
+            style={{
+              fontSize: '0.75rem',
+              padding: '5px 10px',
+              opacity: canAdd ? 1 : 0.4,
+              cursor: canAdd ? 'pointer' : 'default',
+            }}
+            onClick={addToRoster}
+            disabled={!canAdd}
+          >
+            {saving ? '...' : '+ Roster'}
+          </button>
         </div>
       </header>
 
       <main className="stats-main">
-        {/* Year Selector */}
-        <div className="year-selector">
-          <h3 className="selector-title">Season</h3>
-          <div className="year-pills">
-            {years.map((year) => (
-              <button
-                key={year}
-                className={`year-pill ${selectedYear === year ? 'active' : ''}`}
-                onClick={() => setSelectedYear(year)}
-              >
-                {year}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Players List */}
         <div className="players-section">
-          <h3 className="section-title">Your Team Roster</h3>
+          <div style={{ marginBottom: 12 }}>
+            <input
+              type="text"
+              placeholder="Search players or teams..."
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(0); }}
+              style={{
+                width: '100%',
+                padding: '9px 14px',
+                borderRadius: 10,
+                border: '1px solid var(--border, rgba(255,255,255,0.12))',
+                background: 'var(--card-bg, rgba(255,255,255,0.05))',
+                color: 'var(--text-primary, #fff)',
+                fontSize: '0.9rem',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+            />
+          </div>
+          <div className="section-header">
+            <h3 className="section-title">All Players</h3>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+              Roster: {rosterIds.length}/{TEAM_LIMIT}
+              {pendingIds.length > 0 && (
+                <span style={{ color: 'var(--accent, #00d4ff)', marginLeft: 6 }}>
+                  +{pendingIds.length} pending
+                </span>
+              )}
+            </span>
+          </div>
+
+          {saveMessage && (
+            <p style={{ fontSize: '0.8rem', marginBottom: 8, color: saveMessage === 'Added to roster!' ? 'var(--accent, #00d4ff)' : 'var(--error, #f87171)' }}>
+              {saveMessage}
+            </p>
+          )}
 
           <div className="players-list">
-            {players.map((player, index) => (
-              <motion.div
-                key={player.id}
-                className="player-card"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.02 }}
+            {loading && <p className="signed-in-label">Loading stats...</p>}
+            {!loading && loadError && (
+              <p className="signed-in-label" style={{ color: 'var(--error, #f87171)' }}>{loadError}</p>
+            )}
+            {!loading && !loadError && players.length === 0 && (
+              <p className="signed-in-label">No players found.</p>
+            )}
+            {pagePlayers.map((player, index) => {
+              const inRoster = rosterIds.includes(player.player_id);
+              const isPending = pendingIds.includes(player.player_id);
+              const cardStyle = inRoster
+                ? { border: '2px solid #22c55e', background: 'rgba(34,197,94,0.07)' }
+                : isPending
+                  ? { border: '2px solid var(--accent, #00d4ff)', background: 'rgba(0,212,255,0.07)' }
+                  : {};
+              const badgeStyle = inRoster
+                ? { background: '#22c55e', color: '#000', cursor: 'default' }
+                : isPending
+                  ? { background: 'var(--accent, #00d4ff)', color: '#000', cursor: 'pointer' }
+                  : { cursor: 'pointer' };
+              return (
+                <motion.div
+                  key={player.player_id}
+                  className="player-card"
+                  style={cardStyle}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.07 }}
+                  whileHover={{ scale: 1.02 }}
+                  onClick={() => openDetail(player)}
+                >
+                  <div className="player-avatar-section">
+                    <div className="player-avatar-stats">
+                      <div
+                        className="jersey-number"
+                        style={badgeStyle}
+                        title={inRoster ? 'In Roster' : isPending ? 'Tap to deselect' : 'Tap to select for roster'}
+                        onClick={(e) => { e.stopPropagation(); togglePending(player.player_id); }}
+                      >
+                        {inRoster ? '★' : isPending ? '✓' : player.position}
+                      </div>
+                    </div>
+                    <div className="player-info">
+                      <div className="player-name">{player.player_name}</div>
+                      <div className="player-position">
+                        {player.position} • {player.team}
+                        {inRoster && <span style={{ marginLeft: 6, fontSize: '0.7rem', color: '#22c55e' }}>IN ROSTER</span>}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="player-stats-grid">
+                    <div className="stat-item">
+                      <div className="stat-value-small">{player.pts}</div>
+                      <div className="stat-label-small">PTS</div>
+                    </div>
+                    <div className="stat-item">
+                      <div className="stat-value-small">{player.reb}</div>
+                      <div className="stat-label-small">REB</div>
+                    </div>
+                    <div className="stat-item">
+                      <div className="stat-value-small">{player.ast}</div>
+                      <div className="stat-label-small">AST</div>
+                    </div>
+                    <div className="stat-item">
+                      <div className="stat-value-small">{player.games > 0 ? player.games : '—'}</div>
+                      <div className="stat-label-small">GP</div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {totalPages > 1 && (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, marginTop: 12 }}>
+              <button
+                className="view-all-btn"
+                onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
+                disabled={currentPage === 0}
               >
-                <div className="player-avatar-section">
-                  <div className="player-avatar-stats">
-                    <div className="jersey-number">{player.number}</div>
-                  </div>
-                  <div className="player-info">
-                    <div className="player-name">{player.name}</div>
-                    <div className="player-position">{player.position} • {player.team}</div>
-                  </div>
-                </div>
-
-                <div className="player-stats-grid">
-                  <div className="stat-item">
-                    <div className="stat-value-small">{player.pts}</div>
-                    <div className="stat-label-small">PTS</div>
-                  </div>
-                  <div className="stat-item">
-                    <div className="stat-value-small">{player.reb}</div>
-                    <div className="stat-label-small">REB</div>
-                  </div>
-                  <div className="stat-item">
-                    <div className="stat-value-small">{player.ast}</div>
-                    <div className="stat-label-small">AST</div>
-                  </div>
-                  <div className="stat-item">
-                    <span className="trend-icon">{getTrendIcon(player.trend)}</span>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                ← Prev
+              </button>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                {currentPage + 1} / {totalPages}
+              </span>
+              <button
+                className="view-all-btn"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages - 1, p + 1))}
+                disabled={currentPage === totalPages - 1}
+              >
+                Next →
+              </button>
+            </div>
+          )}
         </div>
-
-        {/* Team Analytics */}
-        <div className="team-stats-section">
-          <h3 className="section-title">Team Analytics</h3>
-
-          <div className="analytics-grid">
-            <div className="analytics-card">
-              <div className="analytics-header">
-                <span className="analytics-icon">🎯</span>
-                <span className="analytics-title">Offensive Rating</span>
-              </div>
-              <div className="analytics-value">118.5</div>
-              <div className="analytics-change positive">+5.2% from last season</div>
-            </div>
-
-            <div className="analytics-card">
-              <div className="analytics-header">
-                <span className="analytics-icon">🛡️</span>
-                <span className="analytics-title">Defensive Rating</span>
-              </div>
-              <div className="analytics-value">106.3</div>
-              <div className="analytics-change positive">+3.8% from last season</div>
-            </div>
-
-            <div className="analytics-card">
-              <div className="analytics-header">
-                <span className="analytics-icon">⚡</span>
-                <span className="analytics-title">Pace</span>
-              </div>
-              <div className="analytics-value">102.7</div>
-              <div className="analytics-change negative">-1.5% from last season</div>
-            </div>
-
-            <div className="analytics-card">
-              <div className="analytics-header">
-                <span className="analytics-icon">🎲</span>
-                <span className="analytics-title">Win Probability</span>
-              </div>
-              <div className="analytics-value">67%</div>
-              <div className="analytics-change positive">vs AI Average</div>
-            </div>
-          </div>
-        </div>
-
-        <button className="compare-stats-btn" onClick={() => onNavigate('matchup')}>
-          Open Match Up →
-        </button>
       </main>
 
-      {/* Bottom Navigation */}
       <nav className="bottom-nav">
         <button className="nav-btn" onClick={() => onNavigate('home')}>
           <span className="icon">🏠</span>
@@ -835,7 +1020,7 @@ const StatsPage = ({ onBack, onNavigate, authUser }) => {
   );
 };
 
-const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification }) => {
+const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification, roster, rosterLoading, onRosterUpdated }) => {
   const aiPool = [
     { id: 101, name: 'Orion Blaze', number: 2, position: 'PG', pts: 22.4, reb: 4.1, ast: 9.2 },
     { id: 102, name: 'Kai Mercer', number: 11, position: 'SG', pts: 26.8, reb: 5.0, ast: 4.9 },
@@ -848,87 +1033,71 @@ const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification }) => {
     { id: 109, name: 'Axel Grant', number: 44, position: 'PF', pts: 16.8, reb: 9.6, ast: 2.3 },
     { id: 110, name: 'Nico Dunn', number: 31, position: 'C', pts: 14.1, reb: 11.5, ast: 1.9 },
   ];
-  const teamSport = (ROSTER_PLAYERS[0]?.sport || 'basketball').toLowerCase();
-  const lineupSizeBySport = getLineupSizeBySport(teamSport);
-  const TEAM_SIZE = Math.min(lineupSizeBySport, ROSTER_PLAYERS.length, aiPool.length);
+  const TEAM_SIZE = Math.min(5, aiPool.length);
 
-  const [selectedPlayerIds, setSelectedPlayerIds] = useState(() =>
-    ROSTER_PLAYERS.slice(0, TEAM_SIZE).map((player) => player.id)
-  );
+  const [highlightedRosterId, setHighlightedRosterId] = useState(null);
+  const [removing, setRemoving] = useState(false);
+  const [removeMessage, setRemoveMessage] = useState('');
+  const [aiPlayers, setAiPlayers] = useState(() => {
+    const shuffled = [...aiPool].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, TEAM_SIZE);
+  });
+  const [simulation, setSimulation] = useState(null);
+  const resultRef = useRef(null);
+
+  const removeFromRoster = async () => {
+    if (!authUser?.id || !highlightedRosterId) return;
+    setRemoving(true);
+    setRemoveMessage('');
+    try {
+      const { error } = await supabase
+        .from('user_team_players')
+        .delete()
+        .eq('user_id', authUser.id)
+        .eq('player_id', highlightedRosterId);
+      if (error) throw error;
+      setHighlightedRosterId(null);
+      if (onRosterUpdated) onRosterUpdated(authUser.id);
+    } catch (err) {
+      console.error('remove from roster error:', err);
+      setRemoveMessage(err.message || 'Failed to remove player.');
+    } finally {
+      setRemoving(false);
+    }
+  };
+
   const generateAiTeam = () => {
     const shuffled = [...aiPool].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, TEAM_SIZE);
   };
-  const [aiPlayers, setAiPlayers] = useState(() => generateAiTeam());
-  const [simulation, setSimulation] = useState(null);
-  const [matchupNotice, setMatchupNotice] = useState(`Build your ${TEAM_SIZE}-player team, then tap Simulate.`);
-  const resultRef = useRef(null);
-
-  const selectedTeam = ROSTER_PLAYERS.filter((player) => selectedPlayerIds.includes(player.id));
 
   const summarizeTeam = (teamPlayers) => {
-    const totals = teamPlayers.reduce((acc, player) => ({
-      pts: acc.pts + player.pts,
-      reb: acc.reb + player.reb,
-      ast: acc.ast + player.ast,
+    const totals = teamPlayers.reduce((acc, p) => ({
+      pts: acc.pts + (Number(p.pts) || 0),
+      reb: acc.reb + (Number(p.reb) || 0),
+      ast: acc.ast + (Number(p.ast) || 0),
     }), { pts: 0, reb: 0, ast: 0 });
     const size = teamPlayers.length || 1;
-    const avg = {
-      pts: totals.pts / size,
-      reb: totals.reb / size,
-      ast: totals.ast / size,
-    };
-    const power = avg.pts * 1.45 + avg.reb * 1.15 + avg.ast * 1.35;
-    return { ...avg, power };
+    const avg = { pts: totals.pts / size, reb: totals.reb / size, ast: totals.ast / size };
+    return { ...avg, power: avg.pts * 1.45 + avg.reb * 1.15 + avg.ast * 1.35 };
   };
 
-  const yourTeamStats = summarizeTeam(selectedTeam);
+  const yourTeamStats = summarizeTeam(roster);
   const aiTeamStats = summarizeTeam(aiPlayers);
-  const powerDiff = yourTeamStats.power - aiTeamStats.power;
-  const winChance = Math.max(20, Math.min(80, Math.round(50 + powerDiff * 1.4)));
-
-  const togglePlayerSelection = (playerId) => {
-    setSimulation(null);
-    setSelectedPlayerIds((current) => {
-      if (current.includes(playerId)) {
-        if (current.length <= TEAM_SIZE) {
-          setMatchupNotice(`You must keep ${TEAM_SIZE} players in your team.`);
-          return current;
-        }
-        setMatchupNotice('Player removed from lineup.');
-        return current.filter((id) => id !== playerId);
-      }
-      if (current.length >= TEAM_SIZE) {
-        setMatchupNotice(`Team size is fixed at ${TEAM_SIZE}.`);
-        return current;
-      }
-      setMatchupNotice('Player added to lineup.');
-      return [...current, playerId];
-    });
-  };
+  const winChance = Math.max(20, Math.min(80, Math.round(50 + (yourTeamStats.power - aiTeamStats.power) * 1.4)));
 
   const runSimulation = () => {
-    if (selectedPlayerIds.length !== TEAM_SIZE) {
-      setMatchupNotice(`You need exactly ${TEAM_SIZE} players to simulate.`);
-      return;
-    }
-    const nextAiTeam = generateAiTeam();
-    setAiPlayers(nextAiTeam);
-    const nextAiStats = summarizeTeam(nextAiTeam);
-    const nextPowerDiff = yourTeamStats.power - nextAiStats.power;
-    const nextWinChance = Math.max(20, Math.min(80, Math.round(50 + nextPowerDiff * 1.4)));
-    const userWinThreshold = nextWinChance / 100;
-    const userWon = Math.random() <= userWinThreshold;
-    const baseYourScore = Math.round(yourTeamStats.pts * 3.3 + yourTeamStats.ast * 1.6 + yourTeamStats.reb * 0.8);
-    const baseAiScore = Math.round(nextAiStats.pts * 3.3 + nextAiStats.ast * 1.6 + nextAiStats.reb * 0.8);
-    const yourScore = baseYourScore + Math.round((Math.random() - 0.5) * 16) + (userWon ? 4 : -2);
-    const aiScore = baseAiScore + Math.round((Math.random() - 0.5) * 16) + (userWon ? -2 : 4);
-
-    setSimulation({
-      yourScore,
-      aiScore,
-      winner: yourScore >= aiScore ? 'you' : 'ai',
-    });
+    if (roster.length === 0) return;
+    const nextAi = generateAiTeam();
+    setAiPlayers(nextAi);
+    const nextAiStats = summarizeTeam(nextAi);
+    const nextWinChance = Math.max(20, Math.min(80, Math.round(50 + (yourTeamStats.power - nextAiStats.power) * 1.4)));
+    const userWon = Math.random() <= nextWinChance / 100;
+    const yourScore = Math.round(yourTeamStats.pts * 3.3 + yourTeamStats.ast * 1.6 + yourTeamStats.reb * 0.8)
+      + Math.round((Math.random() - 0.5) * 16) + (userWon ? 4 : -2);
+    const aiScore = Math.round(nextAiStats.pts * 3.3 + nextAiStats.ast * 1.6 + nextAiStats.reb * 0.8)
+      + Math.round((Math.random() - 0.5) * 16) + (userWon ? -2 : 4);
+    setSimulation({ yourScore, aiScore, winner: yourScore >= aiScore ? 'you' : 'ai' });
     if (onNewNotification) {
       onNewNotification({
         id: `match-${Date.now()}`,
@@ -938,16 +1107,7 @@ const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification }) => {
         createdAt: new Date().toISOString(),
       });
     }
-    setMatchupNotice('Simulation completed.');
-    setTimeout(() => {
-      resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 20);
-  };
-
-  const refreshAiTeam = () => {
-    setSimulation(null);
-    setAiPlayers(generateAiTeam());
-    setMatchupNotice('AI team refreshed.');
+    setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 20);
   };
 
   const statRows = [
@@ -966,31 +1126,33 @@ const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification }) => {
       <header className="page-header">
         <div className="header-content">
           <button className="back-btn-new" onClick={onBack}>←</button>
-          <h1 className="page-title">Players Match Up</h1>
-          <div style={{ width: 40 }}></div>
+          <h1 className="page-title">Match Up</h1>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button className="view-all-btn" style={{ fontSize: '0.75rem', padding: '5px 10px' }}
+              onClick={() => { setSimulation(null); setAiPlayers(generateAiTeam()); }}>
+              New AI
+            </button>
+            <button className="view-all-btn" style={{ fontSize: '0.75rem', padding: '5px 10px' }}
+              onClick={runSimulation} disabled={roster.length === 0}>
+              Simulate
+            </button>
+          </div>
         </div>
       </header>
 
       <main className="stats-main">
-        {authUser ? <p className="signed-in-label">Signed in as {authUser.email}</p> : null}
-        {TEAM_SIZE < lineupSizeBySport ? (
-          <p className="signed-in-label">
-            Team rule: {teamSport} needs {lineupSizeBySport}, available pool allows {TEAM_SIZE}.
-          </p>
-        ) : null}
-
         <section className="matchup-hero-card">
           <div className="matchup-teams-row">
             <div className="matchup-team-block">
               <div className="matchup-team-badge">YOU</div>
-              <h3>Your Lineup</h3>
-              <p>{selectedTeam.length} players selected</p>
+              <h3>Your Roster</h3>
+              <p>{roster.length} players</p>
             </div>
             <div className="matchup-vs">VS</div>
             <div className="matchup-team-block">
               <div className="matchup-team-badge ai">AI</div>
               <h3>AI Titans</h3>
-              <p>{aiPlayers.length} players selected</p>
+              <p>{aiPlayers.length} players</p>
             </div>
           </div>
           <div className="matchup-chance">
@@ -1004,35 +1166,53 @@ const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification }) => {
 
         <section className="players-section">
           <div className="section-header">
-            <h3 className="section-title">Build Your Team ({TEAM_SIZE} Players)</h3>
-            <div className="matchup-actions">
-              <button className="view-all-btn" onClick={refreshAiTeam}>New AI Team</button>
-              <button className="view-all-btn" onClick={runSimulation}>Simulate</button>
-            </div>
+            <h3 className="section-title">Your Roster</h3>
+            {highlightedRosterId && (
+              <button
+                className="view-all-btn"
+                style={{ color: '#f87171', borderColor: '#f87171' }}
+                onClick={removeFromRoster}
+                disabled={removing}
+              >
+                {removing ? '...' : 'Remove'}
+              </button>
+            )}
           </div>
-          <p className="matchup-hint">{matchupNotice} Selected: {selectedPlayerIds.length}/{TEAM_SIZE}</p>
+          {removeMessage && (
+            <p style={{ fontSize: '0.8rem', color: 'var(--error, #f87171)', marginBottom: 6 }}>{removeMessage}</p>
+          )}
+          <p className="matchup-hint">
+            {highlightedRosterId ? 'Tap Remove to remove this player from your roster.' : 'Tap a player to remove them.'}
+          </p>
           <div className="players-list">
-            {ROSTER_PLAYERS.map((player, index) => {
-              const isSelected = selectedPlayerIds.includes(player.id);
+            {rosterLoading && <p className="signed-in-label">Loading roster...</p>}
+            {!rosterLoading && roster.length === 0 && (
+              <p className="signed-in-label">No players yet. Add players from the Stats page.</p>
+            )}
+            {roster.map((player, index) => {
+              const isHighlighted = highlightedRosterId === player.player_id;
               return (
                 <motion.div
-                  key={player.id}
-                  className={`player-card matchup-select-card ${isSelected ? 'selected' : ''}`}
+                  key={player.player_id}
+                  className="matchup-ai-item"
+                  style={isHighlighted ? { border: '2px solid #f87171', background: 'rgba(248,113,113,0.08)', borderRadius: 12, padding: '10px 14px' } : { borderRadius: 12, padding: '10px 14px' }}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.08 }}
                   whileHover={{ scale: 1.02 }}
-                  onClick={() => togglePlayerSelection(player.id)}
+                  onClick={() => { setHighlightedRosterId((prev) => prev === player.player_id ? null : player.player_id); setRemoveMessage(''); }}
                 >
-                  <div className="player-avatar-section">
-                    <div className="player-avatar-stats">
-                      <div className="jersey-number">{player.number}</div>
+                  <div className="matchup-ai-left">
+                    <span className="matchup-ai-number" style={isHighlighted ? { color: '#f87171' } : {}}>{isHighlighted ? '×' : player.position}</span>
+                    <div>
+                      <div className="player-name">{player.player_name}</div>
+                      <div className="player-position">{player.team}</div>
                     </div>
-                    <div className="player-info">
-                      <div className="player-name">{player.name}</div>
-                      <div className="player-position">{player.position} • {player.pts} PTS</div>
-                    </div>
-                    <div className="matchup-checkbox">{isSelected ? '✓' : '+'}</div>
+                  </div>
+                  <div className="matchup-ai-right">
+                    <span>{player.pts > 0 ? player.pts.toFixed(1) : '—'} PTS</span>
+                    <span>{player.reb > 0 ? player.reb.toFixed(1) : '—'} REB</span>
+                    <span>{player.ast > 0 ? player.ast.toFixed(1) : '—'} AST</span>
                   </div>
                 </motion.div>
               );
@@ -1063,7 +1243,7 @@ const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification }) => {
         </section>
 
         <section className="team-stats-section">
-          <h3 className="section-title">Head-to-Head Comparison</h3>
+          <h3 className="section-title">Head-to-Head</h3>
           <div className="matchup-stats-board">
             {statRows.map((row) => {
               const total = row.your + row.ai;
@@ -1086,12 +1266,12 @@ const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification }) => {
           </div>
         </section>
 
-        {simulation ? (
+        {simulation && (
           <section className="matchup-result-card" ref={resultRef}>
-            <h3>{simulation.winner === 'you' ? 'You Win the Simulation' : 'AI Wins the Simulation'}</h3>
-            <p>Final Score: You {simulation.yourScore} - {simulation.aiScore} AI</p>
+            <h3>{simulation.winner === 'you' ? 'You Win!' : 'AI Wins'}</h3>
+            <p>Final Score: You {simulation.yourScore} — {simulation.aiScore} AI</p>
           </section>
-        ) : null}
+        )}
       </main>
 
       <nav className="bottom-nav">
@@ -1296,6 +1476,58 @@ function App() {
     user: null,
     accessToken: null,
   });
+  const [roster, setRoster] = useState([]);
+  const [rosterLoading, setRosterLoading] = useState(false);
+
+  const fetchRoster = async (userId) => {
+    setRosterLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('user_team_players')
+        .select('player_id, role, players(name, position, teams(name, abbreviation))')
+        .eq('user_id', userId);
+      if (error || !data) return;
+
+      const playerIds = data.map((e) => e.player_id);
+      let statsMap = {};
+      if (playerIds.length > 0) {
+        const { data: statsData } = await supabase
+          .from('game_stats')
+          .select('player_id, points, rebounds, assists')
+          .in('player_id', playerIds);
+        if (statsData) {
+          statsData.forEach((g) => {
+            if (!statsMap[g.player_id]) statsMap[g.player_id] = { games: 0, pts: 0, reb: 0, ast: 0 };
+            statsMap[g.player_id].games += 1;
+            statsMap[g.player_id].pts += g.points || 0;
+            statsMap[g.player_id].reb += g.rebounds || 0;
+            statsMap[g.player_id].ast += g.assists || 0;
+          });
+        }
+      }
+
+      setRoster(data.map((entry) => {
+        const s = statsMap[entry.player_id];
+        const games = s?.games || 0;
+        return {
+          player_id: entry.player_id,
+          player_name: entry.players?.name ?? 'Unknown',
+          position: entry.players?.position ?? '—',
+          team: entry.players?.teams?.name ?? 'Unknown Team',
+          team_abbreviation: entry.players?.teams?.abbreviation ?? '',
+          role: entry.role,
+          pts: games ? s.pts / games : 0,
+          reb: games ? s.reb / games : 0,
+          ast: games ? s.ast / games : 0,
+          games,
+        };
+      }));
+    } catch {
+      // leave roster empty on network error
+    } finally {
+      setRosterLoading(false);
+    }
+  };
   const [notifications, setNotifications] = useState(() => {
     try {
       const raw = localStorage.getItem(NOTIFICATIONS_STORAGE_KEY);
@@ -1340,6 +1572,8 @@ function App() {
       if (storedAuth?.accessToken) {
         setAuthState(storedAuth);
         setPage(storedPage);
+        supabase.auth.setSession({ access_token: storedAuth.accessToken, refresh_token: '' });
+        if (storedAuth.user?.id) fetchRoster(storedAuth.user.id);
       }
     } catch {
       localStorage.removeItem(SESSION_STORAGE_KEY);
@@ -1383,10 +1617,14 @@ function App() {
 
   // On login/signup success, persist user + token and move to home screen.
   const handleLogin = (payload) => {
-    setAuthState({
-      user: payload?.user || null,
-      accessToken: payload?.auth?.access_token || null,
-    });
+    const user = payload?.user || null;
+    const accessToken = payload?.auth?.access_token || null;
+    const refreshToken = payload?.auth?.refresh_token || null;
+    setAuthState({ user, accessToken });
+    if (accessToken) {
+      supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken ?? '' });
+    }
+    if (user?.id) fetchRoster(user.id);
     setPage('home');
   };
 
@@ -1396,6 +1634,7 @@ function App() {
       user: null,
       accessToken: null,
     });
+    setRoster([]);
     setPage('login');
     localStorage.removeItem(SESSION_STORAGE_KEY);
     localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()));
@@ -1420,7 +1659,7 @@ function App() {
         />
       )}
       {page === 'stats' && (
-        <StatsPage key="stats" onBack={() => setPage('home')} onNavigate={setPage} authUser={authState.user} />
+        <StatsPage key="stats" onBack={() => setPage('home')} onNavigate={setPage} authUser={authState.user} onRosterSaved={fetchRoster} />
       )}
       {page === 'matchup' && (
         <MatchupPage
@@ -1429,6 +1668,9 @@ function App() {
           onNavigate={setPage}
           authUser={authState.user}
           onNewNotification={addNotification}
+          roster={roster}
+          rosterLoading={rosterLoading}
+          onRosterUpdated={fetchRoster}
         />
       )}
       {page === 'settings' && (
