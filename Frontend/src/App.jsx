@@ -713,6 +713,13 @@ const StatsPage = ({ onBack, onNavigate, authUser, onRosterSaved }) => {
       setDetailAddMessage('Roster is full (5 players max).');
       return;
     }
+    const rosterPositions = players.filter(p => rosterIds.includes(p.player_id)).map(p => p.position);
+    const pendingPositions = players.filter(p => pendingIds.includes(p.player_id)).map(p => p.position);
+    const playerPosition = detailPlayer?.position;
+    if (playerPosition && (rosterPositions.includes(playerPosition) || pendingPositions.includes(playerPosition))) {
+      setDetailAddMessage(`${playerPosition} is already on your roster.`);
+      return;
+    }
     setDetailAdding(true);
     setDetailAddMessage('');
     try {
@@ -765,10 +772,13 @@ const StatsPage = ({ onBack, onNavigate, authUser, onRosterSaved }) => {
   if (subPage === 'detail' && detailPlayer) {
     const inRoster = rosterIds.includes(detailPlayer.player_id);
     const rosterFull = rosterIds.length >= TEAM_LIMIT;
-    const addBtnLabel = inRoster ? '★ In Roster' : detailAdding ? '...' : rosterFull ? 'Roster Full' : '+ Add to Roster';
+    const detailRosterPositions = players.filter(p => rosterIds.includes(p.player_id)).map(p => p.position);
+    const detailPendingPositions = players.filter(p => pendingIds.includes(p.player_id)).map(p => p.position);
+    const positionTaken = !inRoster && detailPlayer.position && (detailRosterPositions.includes(detailPlayer.position) || detailPendingPositions.includes(detailPlayer.position));
+    const addBtnLabel = inRoster ? '★ In Roster' : detailAdding ? '...' : rosterFull ? 'Roster Full' : positionTaken ? `${detailPlayer.position} Taken` : '+ Add to Roster';
     const addBtnStyle = inRoster
       ? { background: '#22c55e', color: '#000', borderColor: '#22c55e' }
-      : rosterFull
+      : rosterFull || positionTaken
         ? { opacity: 0.4, cursor: 'default' }
         : {};
     return (
@@ -782,7 +792,7 @@ const StatsPage = ({ onBack, onNavigate, authUser, onRosterSaved }) => {
               className="view-all-btn"
               style={{ fontSize: '0.75rem', padding: '5px 10px', ...addBtnStyle }}
               onClick={() => addDetailPlayerToRoster(detailPlayer.player_id)}
-              disabled={inRoster || detailAdding || rosterFull}
+              disabled={inRoster || detailAdding || rosterFull || positionTaken}
             >
               {addBtnLabel}
             </button>
@@ -907,19 +917,29 @@ const StatsPage = ({ onBack, onNavigate, authUser, onRosterSaved }) => {
             {!loading && !loadError && players.length === 0 && (
               <p className="signed-in-label">No players found.</p>
             )}
-            {pagePlayers.map((player, index) => {
+            {(() => {
+              const takenPositions = new Set([
+                ...players.filter(p => rosterIds.includes(p.player_id)).map(p => p.position),
+                ...players.filter(p => pendingIds.includes(p.player_id)).map(p => p.position),
+              ]);
+              return pagePlayers.map((player, index) => {
               const inRoster = rosterIds.includes(player.player_id);
               const isPending = pendingIds.includes(player.player_id);
+              const isPositionTaken = !inRoster && !isPending && takenPositions.has(player.position);
               const cardStyle = inRoster
                 ? { border: '2px solid #22c55e', background: 'rgba(34,197,94,0.07)' }
                 : isPending
                   ? { border: '2px solid var(--accent, #00d4ff)', background: 'rgba(0,212,255,0.07)' }
-                  : {};
+                  : isPositionTaken
+                    ? { opacity: 0.45 }
+                    : {};
               const badgeStyle = inRoster
                 ? { background: '#22c55e', color: '#000', cursor: 'default' }
                 : isPending
                   ? { background: 'var(--accent, #00d4ff)', color: '#000', cursor: 'pointer' }
-                  : { cursor: 'pointer' };
+                  : isPositionTaken
+                    ? { opacity: 0.5, cursor: 'not-allowed' }
+                    : { cursor: 'pointer' };
               return (
                 <motion.div
                   key={player.player_id}
@@ -937,7 +957,7 @@ const StatsPage = ({ onBack, onNavigate, authUser, onRosterSaved }) => {
                         className="jersey-number"
                         style={badgeStyle}
                         title={inRoster ? 'In Roster' : isPending ? 'Tap to deselect' : 'Tap to select for roster'}
-                        onClick={(e) => { e.stopPropagation(); togglePending(player.player_id); }}
+                        onClick={(e) => { e.stopPropagation(); togglePending(player); }}
                       >
                         {inRoster ? '★' : isPending ? '✓' : player.position}
                       </div>
@@ -971,7 +991,8 @@ const StatsPage = ({ onBack, onNavigate, authUser, onRosterSaved }) => {
                   </div>
                 </motion.div>
               );
-            })}
+            });
+          })()}
           </div>
 
           {totalPages > 1 && (
