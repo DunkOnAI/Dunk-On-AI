@@ -31,6 +31,25 @@ from Backend.utils.errors import (
 bp = Blueprint("roster", __name__, url_prefix="/api")
 
 
+def _get_json_payload():
+    """Return parsed JSON payload or a standardized error response."""
+    # One shared parser keeps all endpoint errors looking the same.
+    if not request.is_json:
+        return None, bad_request(
+            ErrorCodes.INVALID_REQUEST, "Content-Type must be application/json"
+        )
+
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        # If frontend sends broken JSON, return clean API error (not HTML).
+        return None, bad_request(
+            ErrorCodes.INVALID_REQUEST,
+            "Request body must be a valid JSON object",
+        )
+
+    return payload, None
+
+
 @bp.get("/users/<int:user_id>/roster")
 def get_roster(user_id):
     client = get_supabase_client()
@@ -60,10 +79,10 @@ def get_roster(user_id):
 
 @bp.post("/users/<int:user_id>/roster")
 def add_player(user_id):
-    if not request.is_json:
-        return bad_request(ErrorCodes.INVALID_REQUEST, "Content-Type must be application/json")
+    data, error_response = _get_json_payload()
+    if error_response:
+        return error_response
 
-    data = request.get_json()
     player_id = data.get("player_id")
     role = data.get("role", DEFAULT_ROLE)
 
@@ -155,10 +174,10 @@ def remove_player(user_id, player_id):
 
 @bp.patch("/users/<int:user_id>/roster/<int:player_id>")
 def update_player_role(user_id, player_id):
-    if not request.is_json:
-        return bad_request(ErrorCodes.INVALID_REQUEST, "Content-Type must be application/json")
+    data, error_response = _get_json_payload()
+    if error_response:
+        return error_response
 
-    data = request.get_json()
     new_role = data.get("role")
 
     if not new_role:
@@ -209,10 +228,10 @@ def update_player_role(user_id, player_id):
 
 @bp.post("/users/<int:user_id>/roster/swap")
 def swap_player_roles(user_id):
-    if not request.is_json:
-        return bad_request(ErrorCodes.INVALID_REQUEST, "Content-Type must be application/json")
+    data, error_response = _get_json_payload()
+    if error_response:
+        return error_response
 
-    data = request.get_json()
     player_1_id = data.get("player_1_id")
     player_2_id = data.get("player_2_id")
 
@@ -318,10 +337,10 @@ def clear_roster(user_id):
 
 @bp.post("/users/<int:user_id>/roster/bulk")
 def bulk_add_players(user_id):
-    if not request.is_json:
-        return bad_request(ErrorCodes.INVALID_REQUEST, "Content-Type must be application/json")
+    data, error_response = _get_json_payload()
+    if error_response:
+        return error_response
 
-    data = request.get_json()
     players_data = data.get("players")
 
     if not players_data or not isinstance(players_data, list):
@@ -336,22 +355,26 @@ def bulk_add_players(user_id):
     if error:
         return not_found(error["code"], error["error"])
 
-    total_to_add = len(players_data)
-    is_valid, error = validate_roster_size(client, user_id, total_to_add)
-    if not is_valid:
-        return conflict(error["code"], error["error"], error.get("details"))
-
-    starters_to_add = sum(1 for p in players_data if p.get("role") == "starter")
-    if starters_to_add > 0:
-        is_valid, error = validate_starter_count(client, user_id, starters_to_add)
-        if not is_valid:
-            return conflict(error["code"], error["error"], error.get("details"))
-
     results = []
     successful = 0
     failed = 0
+    # First pass: collect only entries that are actually insertable.
+    # This avoids false "roster full" when request contains duplicates/bad rows.
+    valid_new_entries = []
+    seen_player_ids = set()
 
     for player_data in players_data:
+        if not isinstance(player_data, dict):
+            results.append(
+                {
+                    "player_id": None,
+                    "status": "failed",
+                    "error": "Each players item must be an object",
+                }
+            )
+            failed += 1
+            continue
+
         player_id = player_data.get("player_id")
         role = player_data.get("role", DEFAULT_ROLE)
 
@@ -366,6 +389,20 @@ def bulk_add_players(user_id):
             failed += 1
             continue
 
+        if player_id in seen_player_ids:
+            # Payload-level duplicate (same request), not DB-level duplicate.
+            results.append(
+                {
+                    "player_id": player_id,
+                    "status": "failed",
+                    "error": "Duplicate player_id in request payload",
+                }
+            )
+            failed += 1
+            continue
+
+        seen_player_ids.add(player_id)
+
         _, player_error = validate_player_exists(client, player_id)
         if player_error:
             results.append({"player_id": player_id, "status": "failed", "error": player_error["error"]})
@@ -376,6 +413,24 @@ def bulk_add_players(user_id):
             results.append({"player_id": player_id, "status": "failed", "error": "Player already on roster"})
             failed += 1
             continue
+
+        valid_new_entries.append({"player_id": player_id, "role": role})
+
+    if valid_new_entries:
+        # Second pass: do size checks only on valid + unique candidates.
+        is_valid, error = validate_roster_size(client, user_id, len(valid_new_entries))
+        if not is_valid:
+            return conflict(error["code"], error["error"], error.get("details"))
+
+        starters_to_add = sum(1 for entry in valid_new_entries if entry["role"] == "starter")
+        if starters_to_add > 0:
+            is_valid, error = validate_starter_count(client, user_id, starters_to_add)
+            if not is_valid:
+                return conflict(error["code"], error["error"], error.get("details"))
+
+    for entry in valid_new_entries:
+        player_id = entry["player_id"]
+        role = entry["role"]
 
         try:
             insert_result = client.table("user_team_players").insert({
