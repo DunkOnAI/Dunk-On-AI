@@ -365,47 +365,26 @@ const SignupPage = ({ onSignup, onGoToLogin }) => {
 
 // Enhanced home page with performance stats, upcoming games, and CTA.
 const HomePage = ({ authUser, onLogout, onSettings, onNavigate }) => {
-  const upcomingGames = [
-    {
-      id: 1,
-      date: 'Today, 7:30 PM',
-      userTeam: 'Your Team',
-      aiTeam: 'AI Warriors',
-      userScore: 105,
-      aiScore: 112,
-      status: 'Live',
-      quarter: 'Q4',
-    },
-    {
-      id: 2,
-      date: 'Tomorrow, 8:00 PM',
-      userTeam: 'Your Team',
-      aiTeam: 'AI Champions',
-      userScore: null,
-      aiScore: null,
-      status: 'Upcoming',
-      quarter: null,
-    },
-    {
-      id: 3,
-      date: 'Feb 17, 6:00 PM',
-      userTeam: 'Your Team',
-      aiTeam: 'AI Legends',
-      userScore: null,
-      aiScore: null,
-      status: 'Upcoming',
-      quarter: null,
-    },
-  ];
+  const [matchHistory, setMatchHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [selectedGame, setSelectedGame] = useState(null);
 
-  const userStats = {
-    wins: 15,
-    losses: 8,
-    winRate: 65.2,
-    totalPoints: 2547,
-    avgPoints: 110.7,
-    ranking: 3,
-  };
+  useEffect(() => {
+    if (!authUser?.id) return;
+    setHistoryLoading(true);
+    fetch(`/api/users/${authUser.id}/match-history`)
+      .then(r => r.json())
+      .then(data => setMatchHistory(data.games || []))
+      .catch(() => setMatchHistory([]))
+      .finally(() => setHistoryLoading(false));
+  }, [authUser?.id]);
+
+  const wins = matchHistory.filter(g => g.winner === 'you').length;
+  const losses = matchHistory.filter(g => g.winner === 'ai').length;
+  const winRate = matchHistory.length ? ((wins / matchHistory.length) * 100).toFixed(1) : null;
+  const avgPoints = matchHistory.length
+    ? (matchHistory.reduce((s, g) => s + g.yourScore, 0) / matchHistory.length).toFixed(1)
+    : null;
 
   return (
     <div className="home-page">
@@ -443,9 +422,9 @@ const HomePage = ({ authUser, onLogout, onSettings, onNavigate }) => {
             >
               <div className="stat-icon-large">🏆</div>
               <div className="stat-content-large">
-                <div className="stat-value-large">{userStats.wins}-{userStats.losses}</div>
+                <div className="stat-value-large">{wins}-{losses}</div>
                 <div className="stat-label-large">Win-Loss Record</div>
-                <div className="stat-extra">{userStats.winRate}% Win Rate</div>
+                {winRate !== null && <div className="stat-extra">{winRate}% Win Rate</div>}
               </div>
             </motion.div>
 
@@ -457,93 +436,67 @@ const HomePage = ({ authUser, onLogout, onSettings, onNavigate }) => {
             >
               <div className="stat-icon-large">📊</div>
               <div className="stat-content-large">
-                <div className="stat-value-large">{userStats.avgPoints}</div>
+                <div className="stat-value-large">{avgPoints ?? '—'}</div>
                 <div className="stat-label-large">Avg Points/Game</div>
-                <div className="stat-extra">{userStats.totalPoints} Total</div>
-              </div>
-            </motion.div>
-
-            <motion.div
-              className="stat-card-large"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <div className="stat-icon-large">🎯</div>
-              <div className="stat-content-large">
-                <div className="stat-value-large">#{userStats.ranking}</div>
-                <div className="stat-label-large">Global Ranking</div>
-                <div className="stat-extra">Top 1% Players</div>
+                {matchHistory.length > 0 && <div className="stat-extra">{matchHistory.length} games played</div>}
               </div>
             </motion.div>
           </div>
         </section>
 
-        {/* Upcoming Games Section */}
+        {/* Past Games Section */}
         <section className="games-section">
           <div className="section-header">
-            <h2 className="section-title">Upcoming Games</h2>
-            <button className="view-all-btn">Schedule →</button>
+            <h2 className="section-title">Past Games</h2>
+            <button className="view-all-btn" onClick={() => onNavigate('matchup')}>Play →</button>
           </div>
 
           <div className="games-list">
-            {upcomingGames.map((game, index) => (
+            {historyLoading ? (
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', padding: '12px 0' }}>Loading...</p>
+            ) : matchHistory.length === 0 ? (
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', padding: '12px 0' }}>
+                No games yet. Head to Match Up to play your first game!
+              </p>
+            ) : matchHistory.slice(0, 5).map((game, index) => (
               <motion.div
-                key={game.id}
-                className={`game-card-enhanced ${game.status === 'Live' ? 'live' : ''}`}
+                key={index}
+                className={`game-card-enhanced ${game.winner === 'you' ? '' : 'live'}`}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ scale: 1.02 }}
+                onClick={() => setSelectedGame(game)}
+                style={{ cursor: 'pointer' }}
               >
-                {game.status === 'Live' && (
-                  <div className="live-indicator">
-                    <span className="live-dot"></span>
-                    LIVE
-                  </div>
-                )}
-
                 <div className="game-info">
-                  <div className="game-date">{game.date}</div>
-                  {game.quarter && <div className="game-quarter">{game.quarter}</div>}
+                  <div className="game-date">{new Date(game.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                  <div className="game-quarter" style={{ color: game.winner === 'you' ? '#4ade80' : '#f87171' }}>
+                    {game.winner === 'you' ? 'WIN' : 'LOSS'}
+                  </div>
                 </div>
 
                 <div className="game-matchup-enhanced">
                   <div className="team-section">
-                    <div className="team-avatar user-avatar">
-                      <span>👤</span>
-                    </div>
+                    <div className="team-avatar user-avatar"><span>👤</span></div>
                     <div className="team-details">
-                      <div className="team-name">{game.userTeam}</div>
+                      <div className="team-name">Your Team</div>
                       <div className="team-label">YOU</div>
                     </div>
-                    {game.userScore !== null && (
-                      <div className="team-score">{game.userScore}</div>
-                    )}
+                    <div className="team-score">{game.yourScore}</div>
                   </div>
 
                   <div className="vs-divider">VS</div>
 
                   <div className="team-section">
-                    {game.aiScore !== null && (
-                      <div className="team-score">{game.aiScore}</div>
-                    )}
+                    <div className="team-score">{game.aiScore}</div>
                     <div className="team-details">
-                      <div className="team-name">{game.aiTeam}</div>
+                      <div className="team-name">AI Titans</div>
                       <div className="team-label ai-label">AI</div>
                     </div>
-                    <div className="team-avatar ai-avatar">
-                      <span>🤖</span>
-                    </div>
+                    <div className="team-avatar ai-avatar"><span>🤖</span></div>
                   </div>
                 </div>
-
-                <button
-                  className="game-action-btn"
-                  onClick={() => onNavigate('matchup')}
-                >
-                  {game.status === 'Live' ? 'Watch Live' : 'View Matchup'}
-                </button>
               </motion.div>
             ))}
           </div>
@@ -585,6 +538,73 @@ const HomePage = ({ authUser, onLogout, onSettings, onNavigate }) => {
           <span>Profile</span>
         </button>
       </nav>
+
+      {/* Game Detail Modal */}
+      {selectedGame && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+          onClick={() => setSelectedGame(null)}
+        >
+          <motion.div
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            onClick={e => e.stopPropagation()}
+            style={{ background: 'var(--card-bg, #1a1a2e)', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 480, maxHeight: '80vh', overflowY: 'auto', padding: '24px 20px 32px' }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem' }}>
+                {new Date(selectedGame.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </h3>
+              <span style={{ fontSize: '0.9rem', fontWeight: 700, color: selectedGame.winner === 'you' ? '#4ade80' : '#f87171' }}>
+                {selectedGame.winner === 'you' ? 'YOU WON' : 'AI WON'} &nbsp; {selectedGame.yourScore} – {selectedGame.aiScore}
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              {/* Your Team */}
+              <div>
+                <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--accent, #6366f1)', letterSpacing: 1, marginBottom: 8 }}>YOUR TEAM</div>
+                {(selectedGame.yourPlayers || []).map((p, i) => (
+                  <div key={i} style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: '8px 10px', marginBottom: 6 }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: 2 }}>{p.name}</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary, #9ca3af)', marginBottom: 4 }}>{p.position}</div>
+                    <div style={{ display: 'flex', gap: 8, fontSize: '0.72rem', color: 'var(--text-secondary, #9ca3af)' }}>
+                      <span>{p.pts?.toFixed ? p.pts.toFixed(1) : p.pts ?? '—'} PTS</span>
+                      <span>{p.reb?.toFixed ? p.reb.toFixed(1) : p.reb ?? '—'} REB</span>
+                      <span>{p.ast?.toFixed ? p.ast.toFixed(1) : p.ast ?? '—'} AST</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* AI Team */}
+              <div>
+                <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#f87171', letterSpacing: 1, marginBottom: 8 }}>AI TITANS</div>
+                {(selectedGame.aiPlayers || []).map((p, i) => (
+                  <div key={i} style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: '8px 10px', marginBottom: 6 }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: 2 }}>{p.name}</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary, #9ca3af)', marginBottom: 4 }}>{p.position}</div>
+                    <div style={{ display: 'flex', gap: 8, fontSize: '0.72rem', color: 'var(--text-secondary, #9ca3af)' }}>
+                      <span>{p.pts?.toFixed ? p.pts.toFixed(1) : p.pts ?? '—'} PTS</span>
+                      <span>{p.reb?.toFixed ? p.reb.toFixed(1) : p.reb ?? '—'} REB</span>
+                      <span>{p.ast?.toFixed ? p.ast.toFixed(1) : p.ast ?? '—'} AST</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={() => setSelectedGame(null)}
+              style={{ marginTop: 20, width: '100%', padding: '12px', background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: 12, color: 'inherit', fontSize: '0.9rem', cursor: 'pointer' }}
+            >
+              Close
+            </button>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
@@ -762,7 +782,10 @@ const StatsPage = ({ onBack, onNavigate, authUser, onRosterSaved }) => {
   };
 
   const filteredPlayers = searchQuery.trim()
-    ? players.filter((p) => p.player_name.toLowerCase().includes(searchQuery.toLowerCase()) || p.team.toLowerCase().includes(searchQuery.toLowerCase()))
+    ? players.filter((p) => {
+        const q = searchQuery.toLowerCase();
+        return p.player_name.toLowerCase().includes(q) || p.team.toLowerCase().includes(q) || p.position.toLowerCase().includes(q);
+      })
     : players;
   const totalPages = Math.ceil(filteredPlayers.length / PAGE_SIZE);
   const pagePlayers = filteredPlayers.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
@@ -875,7 +898,7 @@ const StatsPage = ({ onBack, onNavigate, authUser, onRosterSaved }) => {
           <div style={{ marginBottom: 12 }}>
             <input
               type="text"
-              placeholder="Search players or teams..."
+              placeholder="Search by name, team or position..."
               value={searchQuery}
               onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(0); }}
               style={{
@@ -955,7 +978,14 @@ const StatsPage = ({ onBack, onNavigate, authUser, onRosterSaved }) => {
                     <div className="player-avatar-stats">
                       <div
                         className="jersey-number"
-                        style={badgeStyle}
+                        style={{
+                          ...badgeStyle,
+                          fontSize: player.position.length > 2 ? '0.55rem' : '0.8rem',
+                          lineHeight: 1.1,
+                          wordBreak: 'break-all',
+                          textAlign: 'center',
+                          overflow: 'hidden',
+                        }}
                         title={inRoster ? 'In Roster' : isPending ? 'Tap to deselect' : 'Tap to select for roster'}
                         onClick={(e) => { e.stopPropagation(); togglePending(player); }}
                       >
@@ -1041,30 +1071,43 @@ const StatsPage = ({ onBack, onNavigate, authUser, onRosterSaved }) => {
   );
 };
 
-const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification, roster, rosterLoading, onRosterUpdated }) => {
-  const aiPool = [
-    { id: 101, name: 'Orion Blaze', number: 2, position: 'PG', pts: 22.4, reb: 4.1, ast: 9.2 },
-    { id: 102, name: 'Kai Mercer', number: 11, position: 'SG', pts: 26.8, reb: 5.0, ast: 4.9 },
-    { id: 103, name: 'Darius Volt', number: 34, position: 'PF', pts: 18.6, reb: 10.4, ast: 2.8 },
-    { id: 104, name: 'Zane Hollow', number: 25, position: 'SF', pts: 20.7, reb: 7.4, ast: 3.1 },
-    { id: 105, name: 'Rex Carter', number: 55, position: 'C', pts: 15.2, reb: 12.0, ast: 1.5 },
-    { id: 106, name: 'Mason Voss', number: 4, position: 'PG', pts: 18.1, reb: 3.6, ast: 8.5 },
-    { id: 107, name: 'Ivy Sloan', number: 13, position: 'SF', pts: 21.3, reb: 6.8, ast: 4.2 },
-    { id: 108, name: 'Jett Cross', number: 19, position: 'SG', pts: 17.4, reb: 4.0, ast: 3.9 },
-    { id: 109, name: 'Axel Grant', number: 44, position: 'PF', pts: 16.8, reb: 9.6, ast: 2.3 },
-    { id: 110, name: 'Nico Dunn', number: 31, position: 'C', pts: 14.1, reb: 11.5, ast: 1.9 },
-  ];
-  const TEAM_SIZE = Math.min(5, aiPool.length);
+const AI_MOCK_POOL = [
+  { id: 101, name: 'Orion Blaze', number: 2, position: 'PG', pts: 22.4, reb: 4.1, ast: 9.2 },
+  { id: 102, name: 'Kai Mercer', number: 11, position: 'SG', pts: 26.8, reb: 5.0, ast: 4.9 },
+  { id: 103, name: 'Darius Volt', number: 34, position: 'PF', pts: 18.6, reb: 10.4, ast: 2.8 },
+  { id: 104, name: 'Zane Hollow', number: 25, position: 'SF', pts: 20.7, reb: 7.4, ast: 3.1 },
+  { id: 105, name: 'Rex Carter', number: 55, position: 'C', pts: 15.2, reb: 12.0, ast: 1.5 },
+];
 
+const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification, roster, rosterLoading, onRosterUpdated }) => {
   const [highlightedRosterId, setHighlightedRosterId] = useState(null);
   const [removing, setRemoving] = useState(false);
   const [removeMessage, setRemoveMessage] = useState('');
-  const [aiPlayers, setAiPlayers] = useState(() => {
-    const shuffled = [...aiPool].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, TEAM_SIZE);
-  });
+  const [aiPlayers, setAiPlayers] = useState(AI_MOCK_POOL);
+  const [aiLoading, setAiLoading] = useState(false);
   const [simulation, setSimulation] = useState(null);
   const resultRef = useRef(null);
+
+  useEffect(() => {
+    fetchAiTeam();
+  }, []);
+
+  const fetchAiTeam = async () => {
+    setAiLoading(true);
+    try {
+      const res = await fetch('/api/matchup/ai-team');
+      if (!res.ok) throw new Error('API unavailable');
+      const data = await res.json();
+      if (data.team && data.team.length > 0) {
+        setAiPlayers(data.team);
+      }
+    } catch {
+      // fallback to mock pool — data collection hasn't been run yet
+      setAiPlayers(AI_MOCK_POOL);
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const removeFromRoster = async () => {
     if (!authUser?.id || !highlightedRosterId) return;
@@ -1087,11 +1130,6 @@ const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification, roster, 
     }
   };
 
-  const generateAiTeam = () => {
-    const shuffled = [...aiPool].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, TEAM_SIZE);
-  };
-
   const summarizeTeam = (teamPlayers) => {
     const totals = teamPlayers.reduce((acc, p) => ({
       pts: acc.pts + (Number(p.pts) || 0),
@@ -1109,16 +1147,24 @@ const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification, roster, 
 
   const runSimulation = () => {
     if (roster.length === 0) return;
-    const nextAi = generateAiTeam();
-    setAiPlayers(nextAi);
-    const nextAiStats = summarizeTeam(nextAi);
+    const nextAiStats = summarizeTeam(aiPlayers);
     const nextWinChance = Math.max(20, Math.min(80, Math.round(50 + (yourTeamStats.power - nextAiStats.power) * 1.4)));
     const userWon = Math.random() <= nextWinChance / 100;
     const yourScore = Math.round(yourTeamStats.pts * 3.3 + yourTeamStats.ast * 1.6 + yourTeamStats.reb * 0.8)
       + Math.round((Math.random() - 0.5) * 16) + (userWon ? 4 : -2);
     const aiScore = Math.round(nextAiStats.pts * 3.3 + nextAiStats.ast * 1.6 + nextAiStats.reb * 0.8)
       + Math.round((Math.random() - 0.5) * 16) + (userWon ? -2 : 4);
-    setSimulation({ yourScore, aiScore, winner: yourScore >= aiScore ? 'you' : 'ai' });
+    const winner = yourScore >= aiScore ? 'you' : 'ai';
+    setSimulation({ yourScore, aiScore, winner });
+    const yourPlayerSnap = roster.map(p => ({ name: p.player_name, position: p.position, pts: p.pts, reb: p.reb, ast: p.ast }));
+    const aiPlayerSnap = aiPlayers.map(p => ({ name: p.name, position: p.position, pts: p.pts, reb: p.reb, ast: p.ast }));
+    if (authUser?.id) {
+      fetch(`/api/users/${authUser.id}/match-history`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ yourScore, aiScore, winner, yourPlayers: yourPlayerSnap, aiPlayers: aiPlayerSnap }),
+      }).catch(err => console.error('Failed to save match:', err));
+    }
     if (onNewNotification) {
       onNewNotification({
         id: `match-${Date.now()}`,
@@ -1150,8 +1196,8 @@ const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification, roster, 
           <h1 className="page-title">Match Up</h1>
           <div style={{ display: 'flex', gap: 6 }}>
             <button className="view-all-btn" style={{ fontSize: '0.75rem', padding: '5px 10px' }}
-              onClick={() => { setSimulation(null); setAiPlayers(generateAiTeam()); }}>
-              New AI
+              onClick={() => { setSimulation(null); fetchAiTeam(); }} disabled={aiLoading}>
+              {aiLoading ? '...' : 'New AI'}
             </button>
             <button className="view-all-btn" style={{ fontSize: '0.75rem', padding: '5px 10px' }}
               onClick={runSimulation} disabled={roster.length === 0}>
@@ -1244,10 +1290,12 @@ const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification, roster, 
         <section className="team-stats-section">
           <h3 className="section-title">AI Selected Team</h3>
           <div className="matchup-ai-list">
-            {aiPlayers.map((player) => (
+            {aiLoading ? (
+              <p style={{ color: 'var(--text-secondary)', padding: '12px 0' }}>Loading AI team...</p>
+            ) : aiPlayers.map((player) => (
               <div key={player.id} className="matchup-ai-item">
                 <div className="matchup-ai-left">
-                  <span className="matchup-ai-number">#{player.number}</span>
+                  <span className="matchup-ai-number">{player.number != null ? `#${player.number}` : player.position}</span>
                   <div>
                     <div className="player-name">{player.name}</div>
                     <div className="player-position">{player.position}</div>
