@@ -19,6 +19,12 @@ import configparser
 from datetime import datetime
 from nba_api.stats.endpoints import leaguegamelog
 from nba_api.stats.endpoints import commonplayerinfo
+from nba_api.stats.library.http import NBAStatsHTTP
+
+NBAStatsHTTP.headers.update({
+    "x-nba-stats-origin": "stats",
+    "x-nba-stats-token": "true",
+})
 
 
 # Function to fetch all players and save to CSV
@@ -91,7 +97,8 @@ def get_players():
             gamelog = leaguegamelog.LeagueGameLog(
                 season=season,
                 season_type_all_star="Regular Season",
-                player_or_team_abbreviation="P"
+                player_or_team_abbreviation="P",
+                timeout=60
             )
 
             time.sleep(api_delay)
@@ -131,17 +138,33 @@ def get_players():
         players_df["PLAYER_NAME"] = players_df["PLAYER_NAME"].str.replace(",", "", regex=False)
 
         total_players = len(players_df)
-        """
-        # Add POSITION column
+
+        # Add POSITION column — resume from checkpoint if available
+        checkpoint_path = os.path.join("data", "raw", "players.csv")
+        existing_positions = {}
+        if os.path.exists(checkpoint_path):
+            checkpoint_df = pd.read_csv(checkpoint_path)
+            if "POSITION" in checkpoint_df.columns:
+                existing_positions = dict(zip(checkpoint_df["PLAYER_ID"], checkpoint_df["POSITION"]))
+                known = sum(1 for v in existing_positions.values() if v != "UNKNOWN")
+                print(f"[INFO] Resuming from checkpoint: {len(existing_positions)} players already processed ({known} with known positions)")
+
         positions = []
+        batch_size = 200
+        batch_delay = 5.0
 
         print("[INFO] Fetching player positions...")
         print(f"[INFO] Total players to process: {total_players}")
 
         for index, player_id in enumerate(players_df["PLAYER_ID"], start=1):
+            if player_id in existing_positions and existing_positions[player_id] != "UNKNOWN":
+                print(f"[SKIP] {index}/{total_players} player {player_id} already has position: {existing_positions[player_id]}")
+                positions.append(existing_positions[player_id])
+                continue
+
             print(f"[PROGRESS] {index}/{total_players} processing player {player_id}")
             try:
-                info = commonplayerinfo.CommonPlayerInfo(player_id=player_id)
+                info = commonplayerinfo.CommonPlayerInfo(player_id=player_id, timeout=60)
                 time.sleep(api_delay)
 
                 info_df = info.get_data_frames()[0]
@@ -155,9 +178,16 @@ def get_players():
                 positions.append("UNKNOWN")
                 warning_count += 1
 
+            if index % batch_size == 0:
+                print(f"[INFO] Batch of {batch_size} done, pausing {batch_delay}s...")
+                checkpoint_df = players_df.iloc[:index].copy()
+                checkpoint_df["POSITION"] = positions
+                os.makedirs(os.path.join("data", "raw"), exist_ok=True)
+                checkpoint_df.to_csv(checkpoint_path, index=False)
+                print(f"[INFO] Checkpoint saved at player {index}/{total_players}")
+                time.sleep(batch_delay)
+
         players_df["POSITION"] = positions
-        """
-        players_df["POSITION"] = "UNKNOWN"
 
         # Ensure data/raw directory exists
         data_folder = os.path.join("data", "raw")
