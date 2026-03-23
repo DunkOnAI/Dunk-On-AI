@@ -1,2507 +1,59 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double+Ink&display=swap');
-
-/* ============================================
-   GLOBAL VARIABLES & RESETS
-   ============================================ */
+@import url('https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double+Ink&display=swap');
 
 :root {
-  --primary-bg: #0a0e1a;
-  --secondary-bg: #141929;
-  --accent-blue: #1a3a5c;
-  --accent-cyan: #00d4ff;
-  --accent-orange: #ff8557;
-  --accent-gold: #d4a056;
-  --text-primary: #ffffff;
-  --text-secondary: #a0b5d4;
-  --success: #4ade80;
-  --danger: #ef4444;
+  --bg-1: #060913;
+  --bg-2: #0b1330;
+  --bg-3: #131a3f;
+  --surface: rgba(17, 24, 44, 0.74);
+  --surface-strong: rgba(20, 28, 52, 0.92);
+  --surface-soft: rgba(132, 155, 198, 0.09);
+  --line: rgba(145, 172, 221, 0.26);
+  --line-strong: rgba(145, 172, 221, 0.44);
+  --text: #edf3ff;
+  --text-soft: #9eb0d1;
+  --text-muted: #74839d;
+  --primary: #4d8dff;
+  --secondary: #ef6f89;
+  --accent: #6e67ff;
+  --ok: #3fd18f;
+  --danger: #f06e77;
+  --card-bg: color-mix(in srgb, var(--surface-strong) 94%, #ffffff 6%);
+  --chip-bg: color-mix(in srgb, var(--surface) 94%, #ffffff 6%);
+  --glow: 0 18px 42px rgba(4, 10, 24, 0.46);
 }
 
 :root[data-theme='beige'] {
-  --primary-bg: #efe2cf;
-  --secondary-bg: #f7ecda;
-  --accent-blue: #d8c2a2;
-  --accent-cyan: #6a8b8e;
-  --accent-orange: #b8774a;
-  --accent-gold: #b7965e;
-  --text-primary: #2f2a24;
-  --text-secondary: #6f6558;
-  --success: #3b8f68;
-  --danger: #c64b4b;
-}
-
-/* ============================================
-   LOGIN PAGE STYLES
-   ============================================ */
-
-.login-page {
-  position: relative;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background: radial-gradient(ellipse at center, var(--accent-blue) 0%, var(--primary-bg) 100%);
-}
-
-.background-animation {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  z-index: 0;
-}
-
-.grid-lines {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: 
-    linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
-  background-size: 50px 50px;
-  animation: gridMove 20s linear infinite;
-}
-
-@keyframes gridMove {
-  0% { transform: translate(0, 0); }
-  100% { transform: translate(50px, 50px); }
-}
-
-.floating-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(60px);
-  opacity: 0.15;
-  animation: float 8s ease-in-out infinite;
-}
-
-.orb-1 {
-  width: 300px;
-  height: 300px;
-  background: #00d4ff;
-  top: 10%;
-  left: 20%;
-  animation-delay: 0s;
-}
-
-.orb-2 {
-  width: 250px;
-  height: 250px;
-  background: #ff8557;
-  bottom: 20%;
-  right: 15%;
-  animation-delay: 2s;
-}
-
-.orb-3 {
-  width: 200px;
-  height: 200px;
-  background: #00d4ff;
-  top: 60%;
-  left: 10%;
-  animation-delay: 4s;
-}
-
-@keyframes float {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(30px, -30px) scale(1.1); }
-}
-
-.player-left,
-.player-right {
-  position: absolute;
-  z-index: 1;
-  width: 200px;
-  height: 400px;
-}
-
-.player-left {
-  left: 5%;
-  bottom: 10%;
-}
-
-.player-right {
-  right: 5%;
-  bottom: 10%;
-}
-
-.player-silhouette {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(255, 133, 87, 0.1));
-  clip-path: polygon(
-    30% 0%, 35% 8%, 40% 15%, 45% 20%, 50% 22%, 
-    55% 20%, 60% 15%, 65% 8%, 70% 0%,
-    75% 5%, 80% 10%, 82% 20%, 85% 35%, 88% 50%,
-    85% 65%, 80% 75%, 75% 80%, 70% 90%, 65% 100%,
-    50% 95%, 35% 100%, 30% 90%, 25% 80%, 20% 75%,
-    15% 65%, 12% 50%, 15% 35%, 18% 20%, 20% 10%, 25% 5%
-  );
-  border: 2px solid rgba(0, 212, 255, 0.3);
-  box-shadow: 0 0 30px rgba(0, 212, 255, 0.2);
-  animation: playerPulse 3s ease-in-out infinite;
-}
-
-@keyframes playerPulse {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.02); }
-}
-
-.login-container {
-  position: relative;
-  z-index: 10;
-  background: rgba(20, 25, 41, 0.95);
-  border: 2px solid rgba(0, 212, 255, 0.3);
-  border-radius: 24px;
-  padding: 50px 60px;
-  width: 90%;
-  max-width: 480px;
-  box-shadow: 
-    0 20px 60px rgba(0, 0, 0, 0.5),
-    0 0 40px rgba(0, 212, 255, 0.2),
-    inset 0 0 60px rgba(0, 212, 255, 0.05);
-  backdrop-filter: blur(10px);
-}
-
-.logo {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-
-.basketball-wings {
-  width: 200px;
-  height: 80px;
-  filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.5));
-}
-
-.app-title {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 2rem;
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 40px;
-  color: var(--text-primary);
-  text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
-  letter-spacing: 1px;
-}
-
-.auth-subtitle {
-  margin-top: -20px;
-  margin-bottom: 30px;
-  text-align: center;
-  color: var(--text-secondary);
-  font-size: 0.95rem;
-}
-
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.login-form input {
-  width: 100%;
-  padding: 16px 20px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 2px solid rgba(0, 212, 255, 0.2);
-  border-radius: 12px;
-  font-size: 1.1rem;
-  color: #0a0e1a;
-  transition: all 0.3s ease;
-  font-weight: 500;
-}
-
-.login-form input::placeholder {
-  color: rgba(10, 14, 26, 0.5);
-  font-weight: 400;
-}
-
-.login-form input:focus {
-  outline: none;
-  border-color: var(--accent-cyan);
-  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
-  transform: translateY(-2px);
-}
-
-.login-btn {
-  width: 100%;
-  padding: 18px;
-  background: linear-gradient(135deg, #ff8557, #ff6b3d);
-  border: none;
-  border-radius: 12px;
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: white;
-  text-transform: capitalize;
-  font-style: italic;
-  box-shadow: 
-    0 6px 20px rgba(255, 133, 87, 0.4),
-    inset 0 -2px 10px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
-  margin-top: 10px;
-}
-
-.login-btn:hover {
-  box-shadow: 
-    0 8px 30px rgba(255, 133, 87, 0.6),
-    inset 0 -2px 10px rgba(0, 0, 0, 0.2);
-  transform: translateY(-2px);
-}
-
-.login-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 10px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.link-button {
-  background: transparent;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-}
-
-.forgot-password,
-.sign-up {
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--text-primary);
-  text-decoration: none;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.sign-up {
-  text-decoration: underline;
-  text-decoration-color: var(--accent-cyan);
-  text-underline-offset: 4px;
-}
-
-.forgot-password:hover,
-.sign-up:hover {
-  color: var(--accent-cyan);
-  text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
-}
-
-.auth-hint {
-  font-size: 1rem;
-  color: var(--text-secondary);
-}
-
-.auth-feedback {
-  margin-top: 4px;
-  text-align: center;
-  font-size: 0.95rem;
-}
-
-.auth-feedback.error {
-  color: #ff8f8f;
-}
-
-.auth-feedback.info {
-  color: #8be5ff;
-}
-
-.data-viz {
-  position: absolute;
-  z-index: 1;
-  width: 120px;
-  height: 200px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 6px;
-}
-
-.left-viz {
-  left: 8%;
-  top: 15%;
-}
-
-.right-viz {
-  right: 8%;
-  top: 20%;
-}
-
-.bar {
-  flex: 1;
-  background: linear-gradient(180deg, rgba(0, 212, 255, 0.6), rgba(0, 212, 255, 0.2));
-  border-radius: 4px 4px 0 0;
-  border: 1px solid rgba(0, 212, 255, 0.4);
-  box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
-  animation: barGlow 2s ease-in-out infinite;
-}
-
-@keyframes barGlow {
-  0%, 100% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.3); }
-  50% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.6); }
-}
-
-/* ============================================
-   HOME PAGE STYLES
-   ============================================ */
-
-.home-page {
-  position: relative;
-  min-height: 100vh;
-  background: var(--primary-bg);
-  padding-bottom: 80px;
-  overflow-x: hidden;
-}
-
-.home-background {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.circuit-pattern {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background-image: 
-    linear-gradient(rgba(0, 212, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 212, 255, 0.02) 1px, transparent 1px);
-  background-size: 40px 40px;
-  animation: circuitMove 30s linear infinite;
-}
-
-@keyframes circuitMove {
-  0% { transform: translate(0, 0); }
-  100% { transform: translate(40px, 40px); }
-}
-
-.top-nav {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: rgba(10, 14, 26, 0.95);
-  backdrop-filter: blur(10px);
-  border-bottom: 2px solid rgba(0, 212, 255, 0.2);
-  padding: 15px 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-}
-
-.top-nav::-webkit-scrollbar {
-  display: none;
-}
-
-.nav-tab {
-  padding: 10px 20px;
-  background: transparent;
-  border: 1px solid rgba(0, 212, 255, 0.2);
-  border-radius: 8px;
-  color: var(--text-secondary);
-  font-size: 1rem;
-  font-weight: 500;
-  white-space: nowrap;
-  transition: all 0.3s ease;
-}
-
-.nav-tab:hover {
-  background: rgba(0, 212, 255, 0.1);
-  border-color: var(--accent-cyan);
-  color: var(--text-primary);
-}
-
-.nav-tab.active {
-  background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(0, 212, 255, 0.1));
-  border-color: var(--accent-cyan);
-  color: var(--text-primary);
-  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
-}
-
-.main-content {
-  position: relative;
-  z-index: 1;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 30px 20px;
-}
-
-.section {
-  background: rgba(20, 25, 41, 0.6);
-  border: 1px solid rgba(0, 212, 255, 0.2);
-  border-radius: 16px;
-  padding: 25px;
-  backdrop-filter: blur(10px);
-  margin-bottom: 30px;
-}
-
-.section-title {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 20px;
-  text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
-}
-
-.games-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 20px;
-}
-
-.game-card {
-  background: linear-gradient(135deg, rgba(26, 58, 92, 0.4), rgba(20, 25, 41, 0.6));
-  border: 2px solid rgba(0, 212, 255, 0.2);
-  border-radius: 12px;
-  padding: 20px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.game-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
-  transition: left 0.5s ease;
-}
-
-.game-card:hover::before {
-  left: 100%;
-}
-
-.game-card:hover {
-  border-color: var(--accent-cyan);
-  box-shadow: 0 8px 30px rgba(0, 212, 255, 0.3);
-  transform: translateY(-4px);
-}
-
-.game-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.league-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255, 133, 87, 0.2);
-  padding: 6px 12px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 133, 87, 0.3);
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--accent-orange);
-}
-
-.league-logo {
-  font-size: 1.2rem;
-}
-
-.game-time {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--accent-cyan);
-  text-shadow: 0 0 10px rgba(0, 212, 255, 0.4);
-}
-
-.game-matchup {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding: 20px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.team {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-}
-
-.team-logo {
-  width: 50px;
-  height: 50px;
-  background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(255, 133, 87, 0.2));
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  border: 2px solid rgba(0, 212, 255, 0.3);
-  box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
-}
-
-.team span {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.vs {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--accent-cyan);
-  padding: 0 15px;
-}
-
-.watch-btn {
-  width: 100%;
-  padding: 10px 30px;
-  background: linear-gradient(135deg, #ff8557, #ff6b3d);
-  border: none;
-  border-radius: 8px;
-  color: white;
-  font-size: 1rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(255, 133, 87, 0.3);
-}
-
-.watch-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(255, 133, 87, 0.5);
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-}
-
-.stat-card {
-  background: linear-gradient(135deg, rgba(26, 58, 92, 0.3), rgba(20, 25, 41, 0.5));
-  border: 2px solid rgba(0, 212, 255, 0.2);
-  border-radius: 12px;
-  padding: 25px;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  transition: all 0.3s ease;
-}
-
-.stat-card:hover {
-  border-color: var(--accent-cyan);
-  box-shadow: 0 8px 30px rgba(0, 212, 255, 0.3);
-  transform: translateY(-4px);
-}
-
-.stat-icon {
-  font-size: 2.5rem;
-}
-
-.stat-content {
-  flex: 1;
-}
-
-.stat-value {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1;
-  margin-bottom: 5px;
-  text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
-}
-
-.stat-label {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  background: rgba(10, 14, 26, 0.95);
-  backdrop-filter: blur(10px);
-  border-top: 2px solid rgba(0, 212, 255, 0.2);
-  padding: 15px 20px;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
-}
-
-.nav-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  padding: 8px 20px;
-  border-radius: 8px;
-}
-
-.nav-btn:hover {
-  color: var(--accent-cyan);
-  background: rgba(0, 212, 255, 0.1);
-  text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
-}
-
-.icon {
-  font-size: 1.5rem;
-}
-
-/* ============================================
-   SETTINGS PAGE STYLES
-   ============================================ */
-
-.settings-page {
-  position: relative;
-  min-height: 100vh;
-  background: var(--primary-bg);
-  overflow: hidden;
-}
-
-.settings-background {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.settings-header {
-  position: relative;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px;
-  background: rgba(10, 14, 26, 0.95);
-  backdrop-filter: blur(10px);
-  border-bottom: 2px solid rgba(0, 212, 255, 0.2);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-
-.back-btn {
-  background: transparent;
-  border: 1px solid rgba(0, 212, 255, 0.3);
-  border-radius: 8px;
-  padding: 8px 12px;
-  color: var(--accent-cyan);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 1.5rem;
-}
-
-.back-btn:hover {
-  background: rgba(0, 212, 255, 0.1);
-  border-color: var(--accent-cyan);
-  box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
-}
-
-.settings-title {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--accent-orange);
-  text-shadow: 0 0 15px rgba(255, 133, 87, 0.5);
-}
-
-.settings-main {
-  position: relative;
-  z-index: 1;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 40px 20px;
-}
-
-.settings-container {
-  flex: 1;
-  max-width: 500px;
-  margin: 0 auto;
-}
-
-.settings-menu {
-  background: rgba(20, 25, 41, 0.8);
-  border: 2px solid rgba(255, 133, 87, 0.2);
-  border-radius: 16px;
-  padding: 10px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-}
-
-.settings-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 20px;
-  margin-bottom: 8px;
-  background: linear-gradient(135deg, rgba(26, 58, 92, 0.2), transparent);
-  border: 1px solid rgba(0, 212, 255, 0.1);
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.settings-item:hover {
-  background: linear-gradient(135deg, rgba(26, 58, 92, 0.4), rgba(0, 212, 255, 0.1));
-  border-color: var(--accent-cyan);
-  box-shadow: 0 4px 20px rgba(0, 212, 255, 0.2);
-  transform: translateX(5px);
-}
-
-.settings-item.active {
-  border-color: var(--accent-cyan);
-  box-shadow: 0 4px 20px rgba(0, 212, 255, 0.25);
-  background: linear-gradient(135deg, rgba(26, 58, 92, 0.45), rgba(0, 212, 255, 0.15));
-}
-
-.settings-item-content {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.settings-icon {
-  font-size: 1.5rem;
-}
-
-.settings-label {
-  font-size: 1.1rem;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.settings-arrow {
-  font-size: 1.5rem;
-  color: var(--text-secondary);
-  transition: all 0.3s ease;
-}
-
-.settings-item:hover .settings-arrow {
-  color: var(--accent-cyan);
-  transform: translateX(5px);
-}
-
-.settings-detail-card {
-  margin-top: 16px;
-  background: rgba(20, 25, 41, 0.78);
-  border: 2px solid rgba(0, 212, 255, 0.2);
-  border-radius: 14px;
-  padding: 18px;
-}
-
-:root[data-theme='beige'] .settings-detail-card {
-  background: rgba(255, 255, 255, 0.65);
-  border-color: rgba(106, 139, 142, 0.35);
-}
-
-.settings-detail-title {
-  color: var(--text-primary);
-  margin-bottom: 12px;
-  font-size: 1.1rem;
-}
-
-.settings-detail-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 10px;
-  color: var(--text-secondary);
-}
-
-.settings-detail-row strong {
-  color: var(--text-primary);
-}
-
-.settings-detail-list {
-  padding-left: 18px;
-  color: var(--text-secondary);
-  display: grid;
-  gap: 8px;
-}
-
-.settings-detail-empty {
-  color: var(--text-secondary);
-  margin-bottom: 12px;
-}
-
-.settings-notification-list {
-  display: grid;
-  gap: 10px;
-}
-
-.settings-notification-item {
-  background: rgba(10, 14, 26, 0.4);
-  border: 1px solid rgba(0, 212, 255, 0.2);
-  border-radius: 10px;
-  padding: 10px 12px;
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-:root[data-theme='beige'] .settings-notification-item {
-  background: rgba(255, 255, 255, 0.7);
-  border-color: rgba(106, 139, 142, 0.28);
-}
-
-.settings-notification-item p {
-  color: var(--text-secondary);
-  font-size: 0.88rem;
-}
-
-.settings-notification-item span {
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-  white-space: nowrap;
-}
-
-.settings-theme-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.settings-theme-btn {
-  border: 1px solid rgba(0, 212, 255, 0.35);
-  background: rgba(0, 212, 255, 0.12);
-  color: var(--text-primary);
-  border-radius: 10px;
-  padding: 10px 14px;
-  font-weight: 600;
-}
-
-.settings-theme-btn.active {
-  border-color: var(--accent-gold);
-  box-shadow: 0 0 0 1px rgba(212, 160, 86, 0.35);
-}
-
-.logout-btn {
-  width: 100%;
-  margin-top: 30px;
-  padding: 18px;
-  background: linear-gradient(135deg, #ff4444, #cc0000);
-  border: none;
-  border-radius: 12px;
-  color: white;
-  font-size: 1.2rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 6px 20px rgba(255, 68, 68, 0.4);
-}
-
-.logout-btn:hover {
-  box-shadow: 0 8px 30px rgba(255, 68, 68, 0.6);
-  transform: translateY(-2px);
-}
-
-/* ============================================
-   RESPONSIVE STYLES
-   ============================================ */
-
-@media (max-width: 768px) {
-  .login-container {
-    padding: 40px 30px;
-    margin: 20px;
-  }
-
-  .app-title {
-    font-size: 1.5rem;
-  }
-
-  .player-left,
-  .player-right {
-    width: 120px;
-    height: 240px;
-  }
-
-  .data-viz {
-    width: 80px;
-    height: 150px;
-  }
-
-  .left-viz {
-    left: 2%;
-    top: 10%;
-  }
-
-  .right-viz {
-    right: 2%;
-    top: 15%;
-  }
-
-  .main-content {
-    padding: 20px 15px;
-  }
-
-  .section-title {
-    font-size: 1.4rem;
-  }
-
-  .games-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .settings-title {
-    font-size: 1.4rem;
-  }
-}
-
-/* ============================================
-   STATS PAGE
-   ============================================ */
-
-.stats-page {
-  position: relative;
-  min-height: 100vh;
-  background: var(--primary-bg);
-  padding-bottom: 80px;
-  overflow-x: hidden;
-}
-
-.stats-background {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.stats-main {
-  position: relative;
-  z-index: 1;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 30px 20px;
-}
-
-/* ============================================
-   PAGE HEADER (shared by HomePage & StatsPage)
-   ============================================ */
-
-.page-header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: rgba(10, 14, 26, 0.95);
-  backdrop-filter: blur(10px);
-  border-bottom: 2px solid rgba(0, 212, 255, 0.2);
-  padding: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-
-.header-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.page-logo {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 1.8rem;
-  font-weight: 900;
-  background: linear-gradient(135deg, #00d4ff, #ff8557);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  letter-spacing: 2px;
-}
-
-.page-title {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  text-align: center;
-}
-
-.header-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.icon-btn {
-  background: rgba(0, 212, 255, 0.1);
-  border: 1px solid rgba(0, 212, 255, 0.3);
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 1.2rem;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.icon-btn:hover {
-  background: rgba(0, 212, 255, 0.2);
-  box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
-}
-
-.back-btn-new {
-  background: transparent;
-  border: 1px solid rgba(0, 212, 255, 0.3);
-  border-radius: 8px;
-  padding: 8px 16px;
-  color: var(--accent-cyan);
-  font-size: 1.5rem;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.back-btn-new:hover {
-  background: rgba(0, 212, 255, 0.1);
-  box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
-}
-
-.signed-in-label {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  margin-bottom: 20px;
-}
-
-/* ============================================
-   SECTION HEADER & VIEW ALL BUTTON
-   ============================================ */
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.view-all-btn {
-  background: transparent;
-  border: 1px solid rgba(0, 212, 255, 0.3);
-  border-radius: 8px;
-  padding: 8px 16px;
-  color: var(--accent-cyan);
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.view-all-btn:hover {
-  background: rgba(0, 212, 255, 0.1);
-  transform: translateX(5px);
-}
-
-/* ============================================
-   PERFORMANCE SECTION (HomePage)
-   ============================================ */
-
-.performance-section {
-  margin-bottom: 40px;
-}
-
-.stats-grid-large {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-}
-
-.stat-card-large {
-  background: linear-gradient(135deg, rgba(26, 58, 92, 0.4), rgba(20, 25, 41, 0.6));
-  border: 2px solid rgba(0, 212, 255, 0.2);
-  border-radius: 16px;
-  padding: 30px;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  transition: all 0.3s;
-  cursor: pointer;
-}
-
-.stat-card-large:hover {
-  border-color: var(--accent-cyan);
-  box-shadow: 0 8px 30px rgba(0, 212, 255, 0.3);
-  transform: translateY(-5px);
-}
-
-.stat-icon-large {
-  font-size: 3rem;
-  min-width: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.stat-content-large {
-  flex: 1;
-}
-
-.stat-value-large {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1;
-  margin-bottom: 8px;
-  text-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
-}
-
-.stat-label-large {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-  margin-bottom: 5px;
-}
-
-.stat-extra {
-  font-size: 0.85rem;
-  color: var(--accent-cyan);
-  font-weight: 600;
-}
-
-/* ============================================
-   GAMES SECTION — ENHANCED CARDS (HomePage)
-   ============================================ */
-
-.games-section {
-  margin-bottom: 40px;
-}
-
-.games-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.game-card-enhanced {
-  background: linear-gradient(135deg, rgba(26, 58, 92, 0.3), rgba(20, 25, 41, 0.6));
-  border: 2px solid rgba(0, 212, 255, 0.2);
-  border-radius: 16px;
-  padding: 25px;
-  transition: all 0.3s;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-}
-
-.game-card-enhanced.live {
-  border-color: var(--accent-orange);
-  box-shadow: 0 0 30px rgba(255, 133, 87, 0.3);
-}
-
-.game-card-enhanced::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
-  transition: left 0.5s;
-}
-
-.game-card-enhanced:hover::before {
-  left: 100%;
-}
-
-.game-card-enhanced:hover {
-  border-color: var(--accent-cyan);
-  box-shadow: 0 10px 40px rgba(0, 212, 255, 0.4);
-  transform: translateY(-3px);
-}
-
-.live-indicator {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255, 133, 87, 0.2);
-  border: 1px solid var(--accent-orange);
-  border-radius: 20px;
-  padding: 6px 12px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--accent-orange);
-  letter-spacing: 1px;
-}
-
-.live-dot {
-  width: 8px;
-  height: 8px;
-  background: var(--accent-orange);
-  border-radius: 50%;
-  animation: livePulse 1.5s ease-in-out infinite;
-}
-
-@keyframes livePulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.2); }
-}
-
-.game-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.game-date {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.game-quarter {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--accent-orange);
-  background: rgba(255, 133, 87, 0.1);
-  padding: 4px 10px;
-  border-radius: 6px;
-}
-
-.game-matchup-enhanced {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 25px;
-  padding: 25px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.team-section {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  flex: 1;
-}
-
-.team-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  border: 2px solid rgba(0, 212, 255, 0.3);
-  box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
-}
-
-.user-avatar {
-  background: linear-gradient(135deg, rgba(0, 212, 255, 0.3), rgba(0, 212, 255, 0.1));
-}
-
-.ai-avatar {
-  background: linear-gradient(135deg, rgba(255, 133, 87, 0.3), rgba(255, 133, 87, 0.1));
-  border-color: rgba(255, 133, 87, 0.3);
-  box-shadow: 0 0 20px rgba(255, 133, 87, 0.2);
-}
-
-.team-details {
-  flex: 1;
-}
-
-.team-name {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 4px;
-}
-
-.team-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--accent-cyan);
-  letter-spacing: 1px;
-  background: rgba(0, 212, 255, 0.1);
-  padding: 2px 8px;
-  border-radius: 4px;
-  display: inline-block;
-}
-
-.ai-label {
-  color: var(--accent-orange);
-  background: rgba(255, 133, 87, 0.1);
-}
-
-.team-score {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 2.5rem;
-  font-weight: 900;
-  color: var(--text-primary);
-  text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
-  min-width: 80px;
-  text-align: center;
-}
-
-.vs-divider {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 1.5rem;
-  font-weight: 900;
-  color: var(--accent-cyan);
-  padding: 0 20px;
-  text-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
-}
-
-.game-action-btn {
-  width: 100%;
-  padding: 14px;
-  background: linear-gradient(135deg, #ff8557, #ff6b3d);
-  border: none;
-  border-radius: 10px;
-  color: white;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 4px 15px rgba(255, 133, 87, 0.3);
-}
-
-.game-action-btn:hover {
-  box-shadow: 0 6px 25px rgba(255, 133, 87, 0.5);
-  transform: translateY(-2px);
-}
-
-/* ============================================
-   CTA SECTION (HomePage)
-   ============================================ */
-
-.cta-section {
-  background: linear-gradient(135deg, rgba(26, 58, 92, 0.5), rgba(20, 25, 41, 0.7));
-  border: 2px solid rgba(0, 212, 255, 0.3);
-  border-radius: 20px;
-  padding: 40px;
-  text-align: center;
-  margin-top: 30px;
-}
-
-.cta-content {
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.cta-title {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 15px;
-  text-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
-}
-
-.cta-text {
-  font-size: 1.1rem;
-  color: var(--text-secondary);
-  margin-bottom: 25px;
-}
-
-.cta-btn {
-  padding: 16px 40px;
-  background: linear-gradient(135deg, #00d4ff, #0099cc);
-  border: none;
-  border-radius: 12px;
-  color: white;
-  font-size: 1.1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 6px 25px rgba(0, 212, 255, 0.4);
-}
-
-.cta-btn:hover {
-  box-shadow: 0 8px 35px rgba(0, 212, 255, 0.6);
-  transform: translateY(-3px);
-}
-
-/* ============================================
-   NAV BTN ACTIVE STATE
-   ============================================ */
-
-.nav-btn.active {
-  color: var(--accent-cyan);
-  background: rgba(0, 212, 255, 0.1);
-  border: 1px solid rgba(0, 212, 255, 0.3);
-  box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
-}
-
-.nav-btn.active .icon {
-  filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.6));
-}
-
-/* ============================================
-   STATS PAGE — YEAR SELECTOR
-   ============================================ */
-
-.year-selector {
-  margin-bottom: 30px;
-}
-
-.selector-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 15px;
-}
-
-.year-pills {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.year-pill {
-  padding: 10px 20px;
-  background: rgba(26, 58, 92, 0.3);
-  border: 2px solid rgba(0, 212, 255, 0.2);
-  border-radius: 25px;
-  color: var(--text-secondary);
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.year-pill:hover {
-  border-color: var(--accent-cyan);
-  background: rgba(0, 212, 255, 0.1);
-}
-
-.year-pill.active {
-  background: linear-gradient(135deg, rgba(0, 212, 255, 0.3), rgba(0, 212, 255, 0.2));
-  border-color: var(--accent-cyan);
-  color: var(--text-primary);
-  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
-}
-
-/* ============================================
-   STATS PAGE — PLAYERS LIST
-   ============================================ */
-
-.players-section {
-  margin-bottom: 40px;
-}
-
-.players-list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.player-card {
-  background: linear-gradient(135deg, rgba(26, 58, 92, 0.3), rgba(20, 25, 41, 0.6));
-  border: 2px solid rgba(0, 212, 255, 0.2);
-  border-radius: 14px;
-  padding: 20px;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.player-card:hover {
-  border-color: var(--accent-cyan);
-  box-shadow: 0 8px 30px rgba(0, 212, 255, 0.3);
-  transform: translateY(-2px);
-}
-
-.player-avatar-section {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 15px;
-}
-
-.player-avatar-stats {
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, rgba(212, 160, 86, 0.3), rgba(255, 133, 87, 0.2));
-  border: 2px solid var(--accent-gold);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.jersey-number {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 1.8rem;
-  font-weight: 900;
-  color: var(--text-primary);
-  text-shadow: 0 0 10px rgba(212, 160, 86, 0.5);
-}
-
-.player-info {
-  flex: 1;
-}
-
-.player-name {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 4px;
-}
-
-.player-position {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.player-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 15px;
-  padding-top: 15px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.stat-item {
-  text-align: center;
-}
-
-.stat-value-small {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1;
-  margin-bottom: 5px;
-  text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
-}
-
-.stat-label-small {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-
-.trend-icon {
-  font-size: 1.5rem;
-}
-
-/* ============================================
-   STATS PAGE — TEAM ANALYTICS
-   ============================================ */
-
-.team-stats-section {
-  margin-bottom: 40px;
-}
-
-.analytics-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-}
-
-.analytics-card {
-  background: linear-gradient(135deg, rgba(26, 58, 92, 0.3), rgba(20, 25, 41, 0.6));
-  border: 2px solid rgba(0, 212, 255, 0.2);
-  border-radius: 14px;
-  padding: 25px;
-  transition: all 0.3s;
-}
-
-.analytics-card:hover {
-  border-color: var(--accent-cyan);
-  box-shadow: 0 8px 30px rgba(0, 212, 255, 0.3);
-  transform: translateY(-3px);
-}
-
-.analytics-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-.analytics-icon {
-  font-size: 1.8rem;
-}
-
-.analytics-title {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  font-weight: 600;
-}
-
-.analytics-value {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 2.5rem;
-  font-weight: 900;
-  color: var(--text-primary);
-  margin-bottom: 8px;
-  text-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
-}
-
-.analytics-change {
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.analytics-change.positive {
-  color: var(--success);
-}
-
-.analytics-change.negative {
-  color: var(--danger);
-}
-
-.compare-stats-btn {
-  width: 100%;
-  max-width: 500px;
-  margin: 0 auto;
-  display: block;
-  padding: 18px;
-  background: linear-gradient(135deg, #00d4ff, #0099cc);
-  border: none;
-  border-radius: 12px;
-  color: white;
-  font-size: 1.1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 6px 25px rgba(0, 212, 255, 0.4);
-}
-
-.compare-stats-btn:hover {
-  box-shadow: 0 8px 35px rgba(0, 212, 255, 0.6);
-  transform: translateY(-3px);
-}
-
-/* ============================================
-   MATCH UP PAGE
-   ============================================ */
-
-.matchup-hero-card {
-  background: linear-gradient(135deg, rgba(26, 58, 92, 0.45), rgba(20, 25, 41, 0.7));
-  border: 2px solid rgba(0, 212, 255, 0.22);
-  border-radius: 16px;
-  padding: 22px;
-  margin-bottom: 24px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.28);
-}
-
-.matchup-teams-row {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 14px;
-}
-
-.matchup-team-block {
-  background: rgba(10, 14, 26, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 12px;
-}
-
-.matchup-team-block h3 {
-  font-size: 1.1rem;
-  margin-bottom: 4px;
-}
-
-.matchup-team-block p {
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-}
-
-.matchup-team-badge {
-  display: inline-block;
-  margin-bottom: 8px;
-  background: rgba(0, 212, 255, 0.16);
-  border: 1px solid rgba(0, 212, 255, 0.35);
-  color: var(--accent-cyan);
-  font-weight: 700;
-  font-size: 0.75rem;
-  letter-spacing: 0.8px;
-  border-radius: 999px;
-  padding: 4px 10px;
-}
-
-.matchup-team-badge.ai {
-  color: var(--accent-orange);
-  background: rgba(255, 133, 87, 0.16);
-  border-color: rgba(255, 133, 87, 0.45);
-}
-
-.matchup-vs {
-  font-family: 'Orbitron', sans-serif;
-  color: var(--accent-cyan);
-  font-size: 1.2rem;
-  font-weight: 900;
-  text-shadow: 0 0 12px rgba(0, 212, 255, 0.55);
-}
-
-.matchup-chance {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 8px 0;
-  color: var(--text-secondary);
-}
-
-.matchup-chance strong {
-  color: var(--text-primary);
-  font-family: 'Orbitron', sans-serif;
-}
-
-.matchup-meter {
-  height: 12px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  overflow: hidden;
-}
-
-.matchup-meter-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #00d4ff, #ff8557);
-  box-shadow: 0 0 16px rgba(0, 212, 255, 0.55);
-}
-
-.matchup-select-card.selected {
-  border-color: var(--accent-gold);
-  box-shadow: 0 0 0 1px rgba(212, 160, 86, 0.45), 0 8px 30px rgba(212, 160, 86, 0.25);
-}
-
-.matchup-checkbox {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  border: 1px solid rgba(0, 212, 255, 0.35);
-  color: var(--accent-cyan);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 1.1rem;
-}
-
-.matchup-stats-board {
-  background: rgba(20, 25, 41, 0.72);
-  border: 2px solid rgba(0, 212, 255, 0.2);
-  border-radius: 14px;
-  padding: 16px;
-}
-
-.matchup-stat-row {
-  margin-bottom: 14px;
-}
-
-.matchup-stat-row:last-child {
-  margin-bottom: 0;
-}
-
-.matchup-stat-values {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.matchup-stat-values span:first-child {
-  text-align: left;
-}
-
-.matchup-stat-values span:nth-child(2) {
-  font-size: 0.8rem;
-  letter-spacing: 0.8px;
-  color: var(--text-secondary);
-}
-
-.matchup-stat-values span:last-child {
-  text-align: right;
-}
-
-.matchup-bars {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.matchup-bar {
-  height: 10px;
-  border-radius: 999px;
-}
-
-.matchup-bar.your {
-  justify-self: end;
-  background: linear-gradient(90deg, rgba(0, 212, 255, 0.5), #00d4ff);
-}
-
-.matchup-bar.ai {
-  background: linear-gradient(90deg, #ff8557, rgba(255, 133, 87, 0.45));
-}
-
-.matchup-result-card {
-  margin-top: 20px;
-  background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(255, 133, 87, 0.2));
-  border: 2px solid rgba(0, 212, 255, 0.3);
-  border-radius: 14px;
-  padding: 16px;
-  text-align: center;
-}
-
-.matchup-result-card h3 {
-  font-family: 'Orbitron', sans-serif;
-  margin-bottom: 6px;
-}
-
-.matchup-hint {
-  margin-bottom: 12px;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-}
-
-.matchup-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.matchup-ai-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.matchup-ai-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  background: rgba(20, 25, 41, 0.72);
-  border: 1px solid rgba(255, 133, 87, 0.26);
-  border-radius: 12px;
-  padding: 12px 14px;
-}
-
-.matchup-ai-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.matchup-ai-number {
-  min-width: 42px;
-  text-align: center;
-  font-family: 'Orbitron', sans-serif;
-  background: rgba(255, 133, 87, 0.16);
-  border: 1px solid rgba(255, 133, 87, 0.35);
-  color: var(--accent-orange);
-  border-radius: 8px;
-  padding: 6px 8px;
-}
-
-.matchup-ai-right {
-  display: flex;
-  gap: 10px;
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-}
-
-/* ============================================
-   RESPONSIVE — NEW COMPONENTS
-   ============================================ */
-
-@media (max-width: 768px) {
-  .page-logo {
-    font-size: 1.3rem;
-  }
-
-  .stats-main {
-    padding: 20px 15px;
-  }
-
-  .stats-grid-large {
-    grid-template-columns: 1fr;
-  }
-
-  .stat-value-large {
-    font-size: 2rem;
-  }
-
-  .game-matchup-enhanced {
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .team-section {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .vs-divider {
-    font-size: 1.2rem;
-  }
-
-  .analytics-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .cta-title {
-    font-size: 1.5rem;
-  }
-
-  .cta-text {
-    font-size: 1rem;
-  }
-
-  .player-stats-grid {
-    gap: 10px;
-  }
-
-  .matchup-teams-row {
-    grid-template-columns: 1fr;
-  }
-
-  .matchup-vs {
-    text-align: center;
-  }
-
-  .matchup-ai-item {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .matchup-ai-right {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .matchup-actions {
-    width: 100%;
-    justify-content: flex-end;
-  }
-}
-
-@media (max-width: 480px) {
-  .game-card-enhanced {
-    padding: 20px 15px;
-  }
-
-  .team-avatar {
-    width: 50px;
-    height: 50px;
-    font-size: 1.5rem;
-  }
-
-  .team-name {
-    font-size: 1rem;
-  }
-
-  .team-score {
-    font-size: 2rem;
-  }
-
-  .stat-value-small {
-    font-size: 1.2rem;
-  }
-
-  .stat-label-small {
-    font-size: 0.65rem;
-  }
-}
-
-/* ============================================
-   PAGE REDESIGN V3 (LOGIN + HOME + STATS + MATCHUP)
-   ============================================ */
-
-:root {
-  --v3-bg-a: #070b15;
-  --v3-bg-b: #11192d;
-  --v3-surface: rgba(23, 31, 52, 0.86);
-  --v3-surface-2: rgba(29, 40, 66, 0.94);
-  --v3-line: rgba(143, 166, 206, 0.24);
-  --v3-line-strong: rgba(143, 166, 206, 0.4);
-  --v3-text: #f3f7ff;
-  --v3-text-soft: #abc0e2;
-  --v3-accent: #2dc4ff;
-  --v3-accent-2: #ff6b52;
-  --v3-shadow: 0 16px 34px rgba(2, 8, 22, 0.34);
-}
-
-:root[data-theme='beige'] {
-  --v3-bg-a: #efe6d9;
-  --v3-bg-b: #e6d9c6;
-  --v3-surface: rgba(255, 248, 238, 0.92);
-  --v3-surface-2: rgba(251, 242, 230, 0.98);
-  --v3-line: rgba(120, 96, 66, 0.24);
-  --v3-line-strong: rgba(120, 96, 66, 0.4);
-  --v3-text: #2e261f;
-  --v3-text-soft: #6d5e49;
-  --v3-accent: #4e708f;
-  --v3-accent-2: #bd6a4e;
-  --v3-shadow: 0 12px 24px rgba(91, 73, 49, 0.12);
-}
-
-.login-page,
-.home-page,
-.stats-page {
-  background:
-    radial-gradient(860px 360px at -8% -10%, color-mix(in srgb, var(--v3-accent) 22%, transparent), transparent 58%),
-    radial-gradient(860px 360px at 108% 114%, color-mix(in srgb, var(--v3-accent-2) 20%, transparent), transparent 58%),
-    linear-gradient(160deg, var(--v3-bg-a), var(--v3-bg-b)) !important;
-  color: var(--v3-text) !important;
-}
-
-.login-container,
-.performance-section,
-.games-section,
-.players-section,
-.team-stats-section,
-.matchup-hero-card,
-.matchup-result-card,
-.matchup-ai-card,
-.cta-section,
-.stat-card-large,
-.analytics-card,
-.game-card-enhanced {
-  background: var(--v3-surface) !important;
-  border: 1px solid var(--v3-line) !important;
-  border-radius: 14px !important;
-  box-shadow: var(--v3-shadow) !important;
-  backdrop-filter: blur(7px);
-}
-
-.page-header {
-  border-bottom: 1px solid var(--v3-line-strong) !important;
-  background:
-    linear-gradient(90deg, color-mix(in srgb, var(--v3-accent-2) 10%, transparent), color-mix(in srgb, var(--v3-accent) 10%, transparent)),
-    color-mix(in srgb, var(--v3-surface-2) 90%, transparent) !important;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
-  backdrop-filter: blur(10px) !important;
-}
-
-.page-logo,
-.page-title,
-.section-title,
-.selector-title,
-.cta-title,
-.app-title {
-  color: var(--v3-text) !important;
-  text-shadow: none !important;
-  letter-spacing: 0.01em !important;
-}
-
-.auth-subtitle,
-.signed-in-label,
-.cta-text,
-.stat-label-large,
-.stat-label-small,
-.player-position,
-.analytics-title,
-.matchup-hint,
-.game-date,
-.game-quarter,
-.stat-extra {
-  color: var(--v3-text-soft) !important;
-}
-
-.main-content,
-.stats-main {
-  max-width: 1120px !important;
-  margin: 0 auto !important;
-  padding-bottom: 108px !important;
-}
-
-.player-card,
-.matchup-team-block,
-.matchup-ai-item,
-.stat-item,
-.icon-btn,
-.back-btn-new,
-.back-btn,
-.year-pill {
-  background: var(--v3-surface-2) !important;
-  border: 1px solid var(--v3-line) !important;
-  border-radius: 11px !important;
-}
-
-.player-card:hover,
-.matchup-team-block:hover,
-.matchup-ai-item:hover,
-.year-pill:hover {
-  border-color: var(--v3-line-strong) !important;
-  transform: translateY(-1px);
-}
-
-.login-form input,
-input[type='text'],
-input[type='email'],
-input[type='password'],
-select,
-textarea {
-  background: color-mix(in srgb, var(--v3-surface-2) 92%, white 8%) !important;
-  border: 1px solid var(--v3-line) !important;
-  border-radius: 11px !important;
-  color: var(--v3-text) !important;
-}
-
-.login-form input::placeholder,
-input::placeholder,
-textarea::placeholder {
-  color: var(--v3-text-soft) !important;
-}
-
-.login-form input:focus,
-input:focus,
-select:focus,
-textarea:focus {
-  outline: none !important;
-  border-color: color-mix(in srgb, var(--v3-accent) 60%, var(--v3-line)) !important;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--v3-accent) 20%, transparent) !important;
-}
-
-.login-btn,
-.cta-btn,
-.game-action-btn,
-.compare-stats-btn,
-.logout-btn,
-.view-all-btn {
-  border-radius: 10px !important;
-  border: 1px solid transparent !important;
-  color: #fff !important;
-  background: linear-gradient(120deg, var(--v3-accent-2), var(--v3-accent)) !important;
-  box-shadow: 0 8px 18px rgba(11, 24, 46, 0.28) !important;
-}
-
-.login-btn:hover,
-.cta-btn:hover,
-.game-action-btn:hover,
-.compare-stats-btn:hover,
-.logout-btn:hover,
-.view-all-btn:hover {
-  transform: translateY(-1px);
-}
-
-.bottom-nav {
-  border-top: 1px solid var(--v3-line-strong) !important;
-  background: color-mix(in srgb, var(--v3-bg-a) 84%, var(--v3-surface-2)) !important;
-  box-shadow: 0 -10px 20px rgba(0, 0, 0, 0.18) !important;
-  padding: 8px 10px calc(8px + env(safe-area-inset-bottom)) !important;
-}
-
-.nav-btn {
-  border: 1px solid transparent !important;
-  border-radius: 10px !important;
-  color: var(--v3-text-soft) !important;
-  background: transparent !important;
-}
-
-.nav-btn.active {
-  color: var(--v3-text) !important;
-  border-color: var(--v3-line-strong) !important;
-  background: color-mix(in srgb, var(--v3-accent) 16%, transparent) !important;
-}
-
-.matchup-vs,
-.trend-icon,
-.matchup-team-badge,
-.matchup-team-badge.ai {
-  text-shadow: none !important;
-}
-
-.matchup-meter {
-  border: 1px solid var(--v3-line) !important;
-  border-radius: 999px !important;
-  overflow: hidden;
-  background: color-mix(in srgb, var(--v3-surface-2) 84%, transparent) !important;
-}
-
-.matchup-meter-fill {
-  background: linear-gradient(120deg, var(--v3-accent), var(--v3-accent-2)) !important;
-}
-
-.matchup-bar.your {
-  background: linear-gradient(120deg, var(--v3-accent), color-mix(in srgb, var(--v3-accent) 55%, white)) !important;
-}
-
-.matchup-bar.ai {
-  background: linear-gradient(120deg, var(--v3-accent-2), color-mix(in srgb, var(--v3-accent-2) 55%, white)) !important;
-}
-
-@media (max-width: 768px) {
-  .main-content,
-  .stats-main {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
-  }
-
-  .performance-section,
-  .games-section,
-  .players-section,
-  .team-stats-section,
-  .matchup-hero-card,
-  .matchup-result-card,
-  .matchup-ai-card,
-  .cta-section {
-    padding: 14px !important;
-  }
-}
-
-/* ============================================
-   FINAL STYLE RESET — CLEAN PREMIUM
-   ============================================ */
-
-:root {
-  --final-bg: #0a1020;
-  --final-bg-soft: #101a2f;
-  --final-surface: rgba(23, 34, 58, 0.9);
-  --final-surface-soft: rgba(30, 44, 73, 0.94);
-  --final-line: rgba(147, 169, 205, 0.24);
-  --final-line-strong: rgba(147, 169, 205, 0.4);
-  --final-text: #eef4ff;
-  --final-text-soft: #a9bcd9;
-  --final-accent: #4f8fff;
-  --final-accent-2: #ff7a59;
-  --final-shadow: 0 14px 30px rgba(3, 8, 20, 0.26);
-}
-
-:root[data-theme='beige'] {
-  --final-bg: #f4ebde;
-  --final-bg-soft: #ebdecb;
-  --final-surface: rgba(255, 249, 240, 0.94);
-  --final-surface-soft: rgba(251, 242, 230, 0.98);
-  --final-line: rgba(123, 98, 68, 0.24);
-  --final-line-strong: rgba(123, 98, 68, 0.4);
-  --final-text: #302820;
-  --final-text-soft: #6d5d48;
-  --final-accent: #507194;
-  --final-accent-2: #c56f51;
-  --final-shadow: 0 12px 24px rgba(93, 74, 49, 0.12);
-}
-
+  --bg-1: #f5ecdf;
+  --bg-2: #eadbc6;
+  --bg-3: #e1cfb2;
+  --surface: rgba(252, 245, 235, 0.78);
+  --surface-strong: rgba(255, 249, 241, 0.95);
+  --surface-soft: rgba(120, 91, 56, 0.09);
+  --line: rgba(128, 97, 62, 0.22);
+  --line-strong: rgba(128, 97, 62, 0.38);
+  --text: #2f271f;
+  --text-soft: #5b4c3d;
+  --text-muted: #8a765c;
+  --primary: #4f6f97;
+  --secondary: #c75d56;
+  --accent: #8a5fd0;
+  --ok: #2c8f63;
+  --danger: #b44d4d;
+  --card-bg: color-mix(in srgb, var(--surface-strong) 96%, #ffffff 4%);
+  --chip-bg: color-mix(in srgb, var(--surface) 95%, #ffffff 5%);
+  --glow: 0 15px 34px rgba(110, 87, 56, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
 body,
-.login-page,
-.home-page,
-.stats-page,
-.settings-page {
-  background:
-    radial-gradient(780px 340px at 0% 0%, color-mix(in srgb, var(--final-accent) 20%, transparent), transparent 58%),
-    radial-gradient(780px 340px at 100% 100%, color-mix(in srgb, var(--final-accent-2) 18%, transparent), transparent 58%),
-    linear-gradient(160deg, var(--final-bg), var(--final-bg-soft)) !important;
-  color: var(--final-text) !important;
+#root {
+  min-height: 100%;
 }
 
-h1,h2,h3,h4,h5,h6,
-.page-logo,.page-title,.settings-title,.section-title,.selector-title,.app-title {
-  font-family: 'Sora', 'Manrope', sans-serif !important;
-  text-transform: none !important;
-  letter-spacing: 0.01em !important;
-  text-shadow: none !important;
-  color: var(--final-text) !important;
-}
-
-.page-header,
-.settings-header,
-.bottom-nav {
-  background: color-mix(in srgb, var(--final-surface-soft) 92%, transparent) !important;
-  border-color: var(--final-line-strong) !important;
-  box-shadow: 0 10px 22px rgba(2, 7, 18, 0.18) !important;
-  backdrop-filter: blur(10px) !important;
-}
-
-.performance-section,
-.games-section,
-.players-section,
-.team-stats-section,
-.settings-container,
-.settings-detail-card,
-.cta-section,
-.matchup-hero-card,
-.matchup-result-card,
-.matchup-ai-card,
-.stat-card-large,
-.analytics-card,
-.game-card-enhanced,
-.login-container {
-  background: var(--final-surface) !important;
-  border: 1px solid var(--final-line) !important;
-  border-radius: 14px !important;
-  box-shadow: var(--final-shadow) !important;
-}
-
-.player-card,
-.settings-item,
-.matchup-team-block,
-.matchup-ai-item,
-.stat-item,
-.year-pill,
-.icon-btn,
-.back-btn,
-.back-btn-new {
-  background: var(--final-surface-soft) !important;
-  border: 1px solid var(--final-line) !important;
-  border-radius: 10px !important;
-  color: var(--final-text) !important;
-  transition: transform 0.16s ease, border-color 0.16s ease;
-}
-
-.player-card:hover,
-.settings-item:hover,
-.matchup-team-block:hover,
-.matchup-ai-item:hover,
-.year-pill:hover,
-.icon-btn:hover,
-.back-btn:hover,
-.back-btn-new:hover {
-  transform: translateY(-1px);
-  border-color: var(--final-line-strong) !important;
-}
-
-.auth-subtitle,
-.auth-hint,
-.signed-in-label,
-.cta-text,
-.stat-label-large,
-.stat-label-small,
-.player-position,
-.analytics-title,
-.matchup-hint,
-.game-date,
-.game-quarter,
-.stat-extra,
-.settings-detail-empty,
-.settings-label,
-.link-button {
-  color: var(--final-text-soft) !important;
-}
-
-.login-form input,
-input[type='text'],
-input[type='email'],
-input[type='password'],
-select,
-textarea {
-  background: color-mix(in srgb, var(--final-surface-soft) 94%, white 6%) !important;
-  border: 1px solid var(--final-line) !important;
-  border-radius: 10px !important;
-  color: var(--final-text) !important;
-}
-
-.login-form input::placeholder,
-input::placeholder,
-textarea::placeholder {
-  color: var(--final-text-soft) !important;
-}
-
-.login-form input:focus,
-input:focus,
-select:focus,
-textarea:focus {
-  outline: none !important;
-  border-color: color-mix(in srgb, var(--final-accent) 56%, var(--final-line)) !important;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--final-accent) 18%, transparent) !important;
-}
-
-.login-btn,
-.cta-btn,
-.game-action-btn,
-.compare-stats-btn,
-.logout-btn,
-.view-all-btn {
-  border: 1px solid transparent !important;
-  border-radius: 10px !important;
-  color: #fff !important;
-  background: linear-gradient(120deg, var(--final-accent), var(--final-accent-2)) !important;
-  box-shadow: 0 8px 18px rgba(12, 26, 48, 0.24) !important;
-}
-
-.login-btn:hover,
-.cta-btn:hover,
-.game-action-btn:hover,
-.compare-stats-btn:hover,
-.logout-btn:hover,
-.view-all-btn:hover {
-  transform: translateY(-1px);
-}
-
-.nav-btn {
-  border: 1px solid transparent !important;
-  border-radius: 10px !important;
-  color: var(--final-text-soft) !important;
-  background: transparent !important;
-}
-
-.nav-btn.active {
-  color: var(--final-text) !important;
-  border-color: var(--final-line-strong) !important;
-  background: color-mix(in srgb, var(--final-accent) 16%, transparent) !important;
-}
-
-.nav-btn:hover {
-  color: var(--final-text) !important;
-}
-
-.matchup-meter,
-.matchup-bars {
-  border-color: var(--final-line) !important;
-}
-
-.matchup-meter-fill,
-.matchup-bar.your {
-  background: linear-gradient(120deg, var(--final-accent), color-mix(in srgb, var(--final-accent) 55%, white)) !important;
-}
-
-.matchup-bar.ai {
-  background: linear-gradient(120deg, var(--final-accent-2), color-mix(in srgb, var(--final-accent-2) 55%, white)) !important;
-}
-
-@media (max-width: 768px) {
-  .main-content,
-  .stats-main,
-  .settings-main {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
-  }
-}
-
-/* Requested font change for the stat/bitcount grid */
-.kpi-grid,
-.kpi-grid * {
-  font-family: "Bitcount Grid Double Ink", "Orbitron", "Teko", "Manrope", sans-serif !important;
-}
-
-/* Force font across the full app */
 html,
 body,
 #root,
@@ -2512,626 +64,804 @@ button,
 input,
 select,
 textarea {
-  font-family: "Bitcount Grid Double Ink", "Orbitron", "Teko", "Manrope", sans-serif !important;
+  font-family: 'Bitcount Grid Double Ink', sans-serif;
 }
 
-/* ============================================
-   UNIFIED BACKGROUND (ALL PAGES)
-   ============================================ */
-
-:root {
-  --unified-bg-a: #060b1a;
-  --unified-bg-b: #101838;
-  --unified-bg-c: #271f55;
+body {
+  margin: 0;
+  color: var(--text);
+  background:
+    radial-gradient(880px 460px at -12% -10%, color-mix(in srgb, var(--primary) 26%, transparent), transparent 60%),
+    radial-gradient(880px 460px at 112% 110%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
+    linear-gradient(160deg, var(--bg-1), var(--bg-2) 52%, var(--bg-3));
 }
 
-body,
 .login-page,
 .home-page,
 .stats-page,
 .settings-page {
-  background:
-    radial-gradient(1100px 520px at -8% -12%, color-mix(in srgb, #4a8be6 28%, transparent), transparent 58%),
-    radial-gradient(1000px 500px at 108% 115%, color-mix(in srgb, #7b4fe0 24%, transparent), transparent 60%),
-    linear-gradient(160deg, var(--unified-bg-a), var(--unified-bg-b) 55%, var(--unified-bg-c)) !important;
+  min-height: 100vh;
+  position: relative;
+  color: var(--text);
+  background: inherit;
 }
 
-/* ============================================
-   PROFESSIONAL MASTER THEME (OVERRIDES ALL)
-   ============================================ */
-
-:root {
-  --pro-bg-1: #06080f;
-  --pro-bg-2: #0a0f1d;
-  --pro-bg-3: #111536;
-  --pro-surface: rgba(8, 10, 14, 0.92);
-  --pro-surface-2: rgba(12, 15, 22, 0.96);
-  --pro-line: rgba(118, 129, 148, 0.26);
-  --pro-line-strong: rgba(140, 153, 176, 0.4);
-  --pro-text: #edf4ff;
-  --pro-text-soft: #a7bbdb;
-  --pro-primary: #4f8fff;
-  --pro-secondary: #e06c52;
-  --pro-glow-a: #4f8fff;
-  --pro-glow-b: #7b5be0;
-  --settings-glass: rgba(255, 255, 255, 0.14);
-  --pro-shadow: 0 14px 32px rgba(0, 0, 0, 0.42);
-}
-
-:root[data-theme='beige'] {
-  --pro-bg-1: #efe6d9;
-  --pro-bg-2: #e6d9c6;
-  --pro-bg-3: #ddceb9;
-  --pro-surface: rgba(255, 248, 238, 0.94);
-  --pro-surface-2: rgba(251, 242, 230, 0.98);
-  --pro-line: rgba(122, 98, 68, 0.24);
-  --pro-line-strong: rgba(122, 98, 68, 0.38);
-  --pro-text: #2f271f;
-  --pro-text-soft: #6d5d48;
-  --pro-primary: #4f7194;
-  --pro-secondary: #c56f51;
-  --pro-glow-a: #c7a983;
-  --pro-glow-b: #b88e7a;
-  --settings-glass: rgba(255, 255, 255, 0.56);
-  --pro-shadow: 0 12px 24px rgba(91, 73, 49, 0.12);
-}
-
-body,
-.login-page,
-.home-page,
-.stats-page,
-.settings-page {
-  background:
-    radial-gradient(1200px 520px at -10% -10%, color-mix(in srgb, var(--pro-glow-a) 22%, transparent), transparent 58%),
-    radial-gradient(1000px 500px at 110% 115%, color-mix(in srgb, var(--pro-glow-b) 20%, transparent), transparent 60%),
-    linear-gradient(160deg, var(--pro-bg-1), var(--pro-bg-2) 55%, var(--pro-bg-3)) !important;
-  color: var(--pro-text) !important;
-}
-
-h1, h2, h3, h4, h5, h6,
-.page-logo, .page-title, .settings-title, .section-title, .selector-title, .app-title {
-  font-family: 'Manrope', 'Segoe UI', sans-serif !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.01em !important;
-  text-transform: none !important;
-  text-shadow: none !important;
-  color: var(--pro-text) !important;
-}
-
-.page-header,
-.settings-header {
-  border-bottom: 1px solid var(--pro-line-strong) !important;
-  background:
-    linear-gradient(90deg, color-mix(in srgb, var(--pro-primary) 9%, transparent), color-mix(in srgb, var(--pro-secondary) 9%, transparent)),
-    color-mix(in srgb, var(--pro-surface-2) 92%, transparent) !important;
-  box-shadow: 0 10px 20px rgba(2, 7, 18, 0.16) !important;
-  backdrop-filter: blur(10px) !important;
-}
-
-.main-content,
-.stats-main,
-.settings-main {
-  max-width: 1120px !important;
-  margin: 0 auto !important;
-  padding-bottom: 106px !important;
-}
-
-.performance-section,
-.games-section,
-.players-section,
-.team-stats-section,
-.settings-container,
-.settings-detail-card,
-.matchup-hero-card,
-.matchup-result-card,
-.matchup-ai-card,
-.cta-section,
-.login-container,
-.stat-card-large,
-.analytics-card,
-.game-card-enhanced {
-  background: transparent !important;
-  border: 1px solid var(--pro-line) !important;
-  border-radius: 14px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
-  backdrop-filter: blur(7px);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-}
-
-.player-card,
-.settings-item,
-.matchup-team-block,
-.matchup-ai-item,
-.stat-item,
-.year-pill,
-.icon-btn,
-.back-btn,
-.back-btn-new {
-  background: transparent !important;
-  border: 1px solid var(--pro-line) !important;
-  border-radius: 11px !important;
-  color: var(--pro-text) !important;
-  transition: transform 0.16s ease, border-color 0.16s ease;
-}
-
-.player-card:hover,
-.settings-item:hover,
-.matchup-team-block:hover,
-.matchup-ai-item:hover,
-.year-pill:hover,
-.icon-btn:hover,
-.back-btn:hover,
-.back-btn-new:hover {
-  transform: translateY(-1px);
-  border-color: var(--pro-line-strong) !important;
-}
-
-.auth-subtitle,
-.auth-hint,
-.signed-in-label,
-.stat-label-large,
-.stat-label-small,
-.stat-extra,
-.player-position,
-.analytics-title,
-.game-date,
-.game-quarter,
-.cta-text,
-.matchup-hint,
-.settings-label,
-.settings-detail-empty,
-.link-button {
-  color: var(--pro-text-soft) !important;
-}
-
-.login-form input,
-input[type='text'],
-input[type='email'],
-input[type='password'],
-select,
-textarea {
-  background: color-mix(in srgb, var(--pro-surface-2) 40%, transparent) !important;
-  border: 1px solid var(--pro-line) !important;
-  border-radius: 10px !important;
-  color: var(--pro-text) !important;
-}
-
-.login-form input::placeholder,
-input::placeholder,
-textarea::placeholder {
-  color: var(--pro-text-soft) !important;
-}
-
-.login-form input:focus,
-input:focus,
-select:focus,
-textarea:focus {
-  outline: none !important;
-  border-color: color-mix(in srgb, var(--pro-primary) 56%, var(--pro-line)) !important;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pro-primary) 16%, transparent) !important;
-}
-
-.login-btn,
-.cta-btn,
-.game-action-btn,
-.compare-stats-btn,
-.logout-btn,
-.view-all-btn {
-  border-radius: 10px !important;
-  border: 1px solid transparent !important;
-  color: #fff !important;
-  background: linear-gradient(120deg, var(--pro-primary), var(--pro-secondary)) !important;
-  box-shadow: 0 8px 16px rgba(11, 24, 46, 0.22) !important;
-}
-
-.login-btn:hover,
-.cta-btn:hover,
-.game-action-btn:hover,
-.compare-stats-btn:hover,
-.logout-btn:hover,
-.view-all-btn:hover {
-  transform: translateY(-1px);
-}
-
-.bottom-nav {
-  border-top: 1px solid var(--pro-line-strong) !important;
-  background: color-mix(in srgb, var(--pro-bg-1) 84%, var(--pro-surface-2)) !important;
-  box-shadow: 0 -8px 18px rgba(0, 0, 0, 0.16) !important;
-  padding: 8px 10px calc(8px + env(safe-area-inset-bottom)) !important;
-}
-
-.nav-btn {
-  border: 1px solid transparent !important;
-  border-radius: 10px !important;
-  color: var(--pro-text-soft) !important;
-  background: transparent !important;
-}
-
-.nav-btn.active {
-  color: var(--pro-text) !important;
-  border-color: var(--pro-line-strong) !important;
-  background: color-mix(in srgb, var(--pro-primary) 16%, transparent) !important;
-}
-
-.nav-btn:hover {
-  color: var(--pro-text) !important;
-}
-
-.matchup-meter {
-  border: 1px solid var(--pro-line) !important;
-  border-radius: 999px !important;
-  background: color-mix(in srgb, var(--pro-surface-2) 88%, transparent) !important;
-}
-
-.matchup-meter-fill,
-.matchup-bar.your {
-  background: linear-gradient(120deg, var(--pro-primary), color-mix(in srgb, var(--pro-primary) 55%, white)) !important;
-}
-
-.matchup-bar.ai {
-  background: linear-gradient(120deg, var(--pro-secondary), color-mix(in srgb, var(--pro-secondary) 55%, white)) !important;
-}
-
-@media (max-width: 768px) {
-  .main-content,
-  .stats-main,
-  .settings-main {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
-  }
-
-  .performance-section,
-  .games-section,
-  .players-section,
-  .team-stats-section,
-  .matchup-hero-card,
-  .matchup-result-card,
-  .matchup-ai-card,
-  .cta-section,
-  .settings-container {
-    padding: 14px !important;
-  }
-}
-
-/* Settings glass finish */
-.settings-container,
-.settings-detail-card,
-.tab-panel,
-.settings-item {
-  background: var(--settings-glass) !important;
-  border: 1px solid var(--pro-line) !important;
-  backdrop-filter: blur(10px) saturate(120%) !important;
-  -webkit-backdrop-filter: blur(10px) saturate(120%) !important;
-}
-
-/* Force all settings boxes/buttons to glass */
-.settings-page .panel,
-.settings-page .settings-layout,
-.settings-page .tab-panel,
-.settings-page .tab-col,
-.settings-page .settings-container,
-.settings-page .settings-detail-card,
-.settings-page .settings-item,
-.settings-page .tab-btn,
-.settings-page .toggle-row {
-  background: var(--settings-glass) !important;
-  border: 1px solid var(--pro-line) !important;
-  backdrop-filter: blur(10px) saturate(120%) !important;
-  -webkit-backdrop-filter: blur(10px) saturate(120%) !important;
-}
-
-/* Absolute final override for navy fill on settings */
-html body .settings-page .panel,
-html body .settings-page .settings-layout,
-html body .settings-page .tab-panel,
-html body .settings-page .tab-col,
-html body .settings-page .settings-container,
-html body .settings-page .settings-detail-card,
-html body .settings-page .settings-item,
-html body .settings-page .tab-btn,
-html body .settings-page .toggle-row,
-html body .settings-page .menu-btn {
-  background-image: none !important;
-  background-color: var(--settings-glass) !important;
-}
-
-/* ============================================
-   UI REBOOT (FINAL)
-   ============================================ */
-
-:root {
-  --reboot-bg-1: #0d1320;
-  --reboot-bg-2: #172238;
-  --reboot-surface: rgba(22, 32, 52, 0.86);
-  --reboot-surface-2: rgba(28, 41, 67, 0.94);
-  --reboot-line: rgba(142, 164, 201, 0.24);
-  --reboot-line-strong: rgba(142, 164, 201, 0.4);
-  --reboot-text: #eef4ff;
-  --reboot-text-soft: #a9bdda;
-  --reboot-primary: #5a97ff;
-  --reboot-secondary: #ff7c62;
-  --reboot-shadow: 0 14px 28px rgba(4, 10, 22, 0.26);
-}
-
-:root[data-theme='beige'] {
-  --reboot-bg-1: #f3eadc;
-  --reboot-bg-2: #eadcc8;
-  --reboot-surface: rgba(255, 249, 241, 0.94);
-  --reboot-surface-2: rgba(252, 244, 233, 0.98);
-  --reboot-line: rgba(123, 98, 67, 0.24);
-  --reboot-line-strong: rgba(123, 98, 67, 0.42);
-  --reboot-text: #2e261e;
-  --reboot-text-soft: #6d5d48;
-  --reboot-primary: #4f7194;
-  --reboot-secondary: #c56f51;
-  --reboot-shadow: 0 12px 22px rgba(97, 78, 53, 0.12);
-}
-
-body,
-.login-page,
-.home-page,
-.stats-page,
-.settings-page {
-  background:
-    radial-gradient(900px 420px at 0% -10%, color-mix(in srgb, var(--reboot-primary) 18%, transparent), transparent 60%),
-    radial-gradient(900px 420px at 100% 112%, color-mix(in srgb, var(--reboot-secondary) 16%, transparent), transparent 62%),
-    linear-gradient(160deg, var(--reboot-bg-1), var(--reboot-bg-2)) !important;
-  color: var(--reboot-text) !important;
-}
-
-h1, h2, h3, h4, h5, h6,
-.page-logo, .page-title, .settings-title, .section-title, .selector-title, .app-title {
-  font-family: 'Manrope', 'Segoe UI', sans-serif !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.005em !important;
-  text-transform: none !important;
-  text-shadow: none !important;
-  color: var(--reboot-text) !important;
-}
-
-.page-header,
-.settings-header {
-  border-bottom: 1px solid var(--reboot-line-strong) !important;
-  background: color-mix(in srgb, var(--reboot-surface-2) 92%, transparent) !important;
-  box-shadow: 0 8px 18px rgba(2, 7, 18, 0.16) !important;
-  backdrop-filter: blur(10px) !important;
-}
-
-.main-content,
-.stats-main,
-.settings-main {
-  max-width: 1080px !important;
-  margin: 0 auto !important;
-  padding-bottom: 104px !important;
-}
-
-.performance-section,
-.games-section,
-.players-section,
-.team-stats-section,
-.settings-container,
-.settings-detail-card,
-.matchup-hero-card,
-.matchup-result-card,
-.matchup-ai-card,
-.cta-section,
-.login-container,
-.stat-card-large,
-.analytics-card,
-.game-card-enhanced,
-.settings-page .panel,
-.settings-page .tab-panel,
-.settings-page .settings-layout {
-  background: var(--reboot-surface) !important;
-  border: 1px solid var(--reboot-line) !important;
-  border-radius: 14px !important;
-  box-shadow: var(--reboot-shadow) !important;
-  backdrop-filter: blur(6px) !important;
-}
-
-.player-card,
-.settings-item,
-.matchup-team-block,
-.matchup-ai-item,
-.stat-item,
-.year-pill,
-.icon-btn,
-.back-btn,
-.back-btn-new,
-.settings-page .tab-btn,
-.settings-page .menu-btn,
-.settings-page .toggle-row {
-  background: var(--reboot-surface-2) !important;
-  border: 1px solid var(--reboot-line) !important;
-  border-radius: 11px !important;
-  color: var(--reboot-text) !important;
-}
-
-.player-card:hover,
-.settings-item:hover,
-.matchup-team-block:hover,
-.matchup-ai-item:hover,
-.year-pill:hover,
-.icon-btn:hover,
-.back-btn:hover,
-.back-btn-new:hover,
-.settings-page .tab-btn:hover,
-.settings-page .menu-btn:hover {
-  transform: translateY(-1px);
-  border-color: var(--reboot-line-strong) !important;
-}
-
-.auth-subtitle,
-.auth-hint,
-.signed-in-label,
-.stat-label-large,
-.stat-label-small,
-.stat-extra,
-.player-position,
-.analytics-title,
-.game-date,
-.game-quarter,
-.cta-text,
-.matchup-hint,
-.settings-label,
-.settings-detail-empty,
-.link-button,
-.subtitle,
-.kicker,
-.muted {
-  color: var(--reboot-text-soft) !important;
-}
-
-.login-form input,
-input[type='text'],
-input[type='email'],
-input[type='password'],
-select,
-textarea,
-.search {
-  background: color-mix(in srgb, var(--reboot-surface-2) 92%, white 8%) !important;
-  border: 1px solid var(--reboot-line) !important;
-  border-radius: 10px !important;
-  color: var(--reboot-text) !important;
-}
-
-.login-form input::placeholder,
-input::placeholder,
-textarea::placeholder,
-.search::placeholder {
-  color: var(--reboot-text-soft) !important;
-}
-
-.login-form input:focus,
-input:focus,
-select:focus,
-textarea:focus,
-.search:focus {
-  outline: none !important;
-  border-color: color-mix(in srgb, var(--reboot-primary) 56%, var(--reboot-line)) !important;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--reboot-primary) 16%, transparent) !important;
-}
-
-.login-btn,
-.cta-btn,
-.game-action-btn,
-.compare-stats-btn,
-.logout-btn,
-.view-all-btn,
-.btn-primary,
-.primary-btn {
-  border-radius: 10px !important;
-  border: 1px solid transparent !important;
-  color: #fff !important;
-  background: linear-gradient(120deg, var(--reboot-primary), var(--reboot-secondary)) !important;
-  box-shadow: 0 8px 16px rgba(11, 24, 46, 0.22) !important;
-}
-
-.btn-ghost,
-.ghost-btn {
-  background: var(--reboot-surface-2) !important;
-  border: 1px solid var(--reboot-line) !important;
-  color: var(--reboot-text) !important;
-}
-
-.btn-danger,
-.danger-btn {
-  background: linear-gradient(120deg, #d65a5a, #b74545) !important;
-  color: #fff !important;
-}
-
-.login-btn:hover,
-.cta-btn:hover,
-.game-action-btn:hover,
-.compare-stats-btn:hover,
-.logout-btn:hover,
-.view-all-btn:hover,
-.btn-primary:hover,
-.primary-btn:hover,
-.btn-ghost:hover,
-.ghost-btn:hover,
-.btn-danger:hover,
-.danger-btn:hover {
-  transform: translateY(-1px);
-}
-
-.bottom-nav {
-  border-top: 1px solid var(--reboot-line-strong) !important;
-  background: color-mix(in srgb, var(--reboot-bg-1) 84%, var(--reboot-surface-2)) !important;
-  box-shadow: 0 -8px 18px rgba(0, 0, 0, 0.16) !important;
-  padding: 8px 10px calc(8px + env(safe-area-inset-bottom)) !important;
-}
-
-.nav-btn {
-  border: 1px solid transparent !important;
-  border-radius: 10px !important;
-  color: var(--reboot-text-soft) !important;
-  background: transparent !important;
-}
-
-.nav-btn.active {
-  color: var(--reboot-text) !important;
-  border-color: var(--reboot-line-strong) !important;
-  background: color-mix(in srgb, var(--reboot-primary) 16%, transparent) !important;
-}
-
-.nav-btn:hover {
-  color: var(--reboot-text) !important;
-}
-
-.matchup-meter {
-  border: 1px solid var(--reboot-line) !important;
-  border-radius: 999px !important;
-  background: color-mix(in srgb, var(--reboot-surface-2) 88%, transparent) !important;
-}
-
-.matchup-meter-fill,
-.matchup-bar.your {
-  background: linear-gradient(120deg, var(--reboot-primary), color-mix(in srgb, var(--reboot-primary) 55%, white)) !important;
-}
-
-.matchup-bar.ai {
-  background: linear-gradient(120deg, var(--reboot-secondary), color-mix(in srgb, var(--reboot-secondary) 55%, white)) !important;
-}
-
-@media (max-width: 768px) {
-  .main-content,
-  .stats-main,
-  .settings-main {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
-  }
-}
-
-/* Final global font override (must be last) */
-html,
-body,
-#root,
-*,
-*::before,
-*::after,
+p,
 h1,
 h2,
 h3,
 h4,
 h5,
-h6,
+h6 {
+  margin: 0;
+}
+
 button,
-input,
-select,
-textarea,
+input {
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.background-animation,
+.home-background,
+.stats-background,
+.settings-background {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.grid-lines,
+.circuit-pattern {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(93, 124, 191, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(93, 124, 191, 0.1) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.78), transparent);
+}
+
+.floating-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(78px);
+  opacity: 0.24;
+}
+
+.orb-1 {
+  width: 290px;
+  height: 290px;
+  top: -8%;
+  left: -9%;
+  background: color-mix(in srgb, var(--primary) 54%, transparent);
+}
+
+.orb-2 {
+  width: 330px;
+  height: 330px;
+  right: -9%;
+  bottom: -10%;
+  background: color-mix(in srgb, var(--accent) 52%, transparent);
+}
+
+.orb-3 {
+  width: 180px;
+  height: 180px;
+  top: 62%;
+  left: 42%;
+  background: color-mix(in srgb, var(--secondary) 48%, transparent);
+}
+
+.player-left,
+.player-right,
+.data-viz {
+  display: none;
+}
+
+.main-content,
+.stats-main,
+.settings-main {
+  position: relative;
+  z-index: 2;
+  width: min(1160px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 1.2rem 0 110px;
+  display: grid;
+  gap: 1rem;
+}
+
+.signed-in-label {
+  color: var(--text-soft);
+  font-size: 0.84rem;
+}
+
+.page-header,
+.settings-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid var(--line-strong);
+  background: color-mix(in srgb, var(--surface-strong) 90%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.header-content,
+.settings-header {
+  width: min(1160px, calc(100% - 2rem));
+  margin: 0 auto;
+  min-height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
 .page-logo,
 .page-title,
+.settings-title {
+  font-size: clamp(1.05rem, 2vw, 1.35rem);
+  letter-spacing: 0.05em;
+}
+
+.page-title {
+  text-transform: uppercase;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+@keyframes rainbowBorder {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes liftFade {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.performance-section,
+.games-section,
+.cta-section,
+.players-section,
+.team-stats-section,
+.matchup-hero-card,
+.matchup-result-card,
+.settings-container,
+.settings-detail-card,
+.login-container,
+.stat-card-large,
+.player-card,
+.matchup-ai-item,
+.settings-item,
+.matchup-team-block,
+.settings-notification-item,
+.stat-item {
+  border: 1px solid transparent;
+  border-radius: 18px;
+  background-image:
+    linear-gradient(180deg, color-mix(in srgb, var(--card-bg) 96%, #ffffff 4%), var(--card-bg)),
+    linear-gradient(120deg, rgba(237, 111, 137, 0.34), rgba(77, 141, 255, 0.3), rgba(110, 103, 255, 0.28), rgba(77, 141, 255, 0.3));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-size: 100% 100%, 220% 220%;
+  animation: rainbowBorder 18s linear infinite;
+  box-shadow: var(--glow);
+}
+
+.performance-section,
+.games-section,
+.cta-section,
+.players-section,
+.team-stats-section,
+.matchup-hero-card,
+.matchup-result-card,
+.settings-container,
+.settings-detail-card,
+.login-container {
+  padding: 1rem;
+  animation: liftFade 0.45s ease both, rainbowBorder 18s linear infinite;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
 .section-title,
-.selector-title,
-.settings-title,
-.app-title,
-.nav-btn,
-.player-name,
-.player-position,
-.stat-value-large,
+.cta-title,
+.settings-detail-title {
+  font-size: 1.06rem;
+  letter-spacing: 0.025em;
+}
+
+.cta-text,
 .stat-label-large,
-.stat-value-small,
+.stat-label-small,
+.stat-extra,
+.player-position,
+.game-date,
+.game-quarter,
+.settings-label,
+.settings-detail-empty,
+.matchup-hint,
+.auth-subtitle,
+.auth-hint {
+  color: var(--text-soft);
+}
+
+.stats-grid-large {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.82rem;
+}
+
+.stat-card-large {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.95rem;
+}
+
+.stat-icon-large {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 1.28rem;
+  background: color-mix(in srgb, var(--chip-bg) 92%, #ffffff 8%);
+  border: 1px solid var(--line);
+}
+
+.stat-value-large {
+  font-size: 1.62rem;
+  line-height: 1;
+}
+
+.games-list,
+.players-list,
+.settings-menu,
+.settings-notification-list,
+.settings-detail-list,
+.matchup-ai-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.game-card-enhanced,
+.player-card,
+.matchup-ai-item,
+.settings-item,
+.settings-notification-item {
+  padding: 0.85rem;
+  border-radius: 14px;
+}
+
+.game-card-enhanced.live {
+  border-color: color-mix(in srgb, var(--danger) 70%, transparent);
+}
+
+.game-info,
+.game-matchup-enhanced,
+.team-section,
+.player-avatar-section,
+.settings-item-content,
+.matchup-ai-left,
+.matchup-ai-right,
+.matchup-stat-values {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.game-info {
+  margin-bottom: 0.6rem;
+}
+
+.team-section {
+  flex: 1;
+}
+
+.team-avatar,
+.player-avatar-stats {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--chip-bg) 94%, #ffffff 6%);
+  border: 1px solid var(--line);
+}
+
+.team-score {
+  font-size: 1.38rem;
+}
+
+.team-label {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+.vs-divider,
+.matchup-vs {
+  padding: 0.35rem 0.54rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--chip-bg) 92%, #ffffff 8%);
+  color: var(--primary);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+}
+
+.cta-section {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.cta-content {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.players-section,
+.team-stats-section {
+  display: grid;
+  gap: 0.78rem;
+}
+
+.player-card {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.player-info,
+.player-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-stats-grid,
+.matchup-stats-board {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.stat-item {
+  padding: 0.56rem;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.stat-value-small {
+  font-size: 1.08rem;
+}
+
 .stat-label-small {
-  font-family: "Bitcount Grid Double Ink", "Orbitron", "Teko", "Manrope", sans-serif !important;
+  font-size: 0.73rem;
+}
+
+.jersey-number,
+.matchup-ai-number,
+.matchup-team-badge {
+  min-width: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  padding: 0.36rem 0.46rem;
+  text-align: center;
+  background: color-mix(in srgb, var(--chip-bg) 92%, #ffffff 8%);
+}
+
+.matchup-team-badge.ai {
+  color: var(--secondary);
+}
+
+.matchup-hero-card {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.matchup-teams-row,
+.matchup-actions,
+.settings-theme-actions,
+.settings-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.matchup-team-block {
+  flex: 1;
+  padding: 0.8rem;
+  border-radius: 14px;
+}
+
+.matchup-chance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.matchup-meter {
+  height: 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface-soft) 95%, transparent);
+  overflow: hidden;
+}
+
+.matchup-meter-fill,
+.matchup-bar {
+  height: 100%;
+  border-radius: inherit;
+}
+
+.matchup-meter-fill,
+.matchup-bar.your {
+  background: linear-gradient(110deg, var(--primary), color-mix(in srgb, var(--primary) 66%, #ffffff));
+}
+
+.matchup-bar.ai {
+  background: linear-gradient(110deg, var(--secondary), color-mix(in srgb, var(--secondary) 66%, #ffffff));
+}
+
+.matchup-stat-row {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.matchup-bars {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 10px;
+}
+
+.matchup-bar {
+  min-width: 18%;
+}
+
+.matchup-result-card h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.4rem;
+}
+
+.settings-container {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  cursor: pointer;
+}
+
+.settings-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--chip-bg) 92%, #ffffff 8%);
+}
+
+.settings-arrow {
+  color: var(--text-muted);
+  font-size: 1.2rem;
+}
+
+.settings-detail-card {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.settings-detail-row {
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 0.58rem 0.7rem;
+  background: color-mix(in srgb, var(--surface-soft) 92%, transparent);
+}
+
+.settings-detail-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--text-soft);
+}
+
+.settings-notification-item {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.settings-notification-item strong {
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.settings-notification-item p {
+  color: var(--text-soft);
+  font-size: 0.84rem;
+}
+
+.settings-notification-item span {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.login-container {
+  width: min(530px, calc(100% - 2rem));
+  margin: clamp(2.6rem, 9vh, 4.2rem) auto;
+  padding: 1.35rem;
+}
+
+.logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.55rem;
+}
+
+.basketball-wings {
+  width: 220px;
+  height: 86px;
+}
+
+.app-title {
+  text-align: center;
+  font-size: clamp(1.95rem, 6vw, 2.8rem);
+  letter-spacing: 0.04em;
+  margin-bottom: 0.12rem;
+}
+
+.auth-subtitle {
+  text-align: center;
+  margin-bottom: 0.95rem;
+  font-size: 0.9rem;
+}
+
+.login-form {
+  display: grid;
+  gap: 0.68rem;
+}
+
+.login-form input {
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface-strong) 92%, #ffffff 8%);
+  padding: 0.8rem 0.88rem;
+  font-size: 0.94rem;
+}
+
+.login-form input::placeholder {
+  color: var(--text-muted);
+}
+
+.login-form input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--primary) 65%, var(--line));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
+}
+
+.login-footer {
+  margin-top: 0.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.auth-feedback {
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  padding: 0.55rem 0.68rem;
+  font-size: 0.8rem;
+}
+
+.auth-feedback.error {
+  border-color: color-mix(in srgb, var(--danger) 56%, transparent);
+  background: color-mix(in srgb, var(--danger) 18%, transparent);
+}
+
+.auth-feedback.info {
+  border-color: color-mix(in srgb, var(--primary) 56%, transparent);
+  background: color-mix(in srgb, var(--primary) 16%, transparent);
+}
+
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  border-top: 1px solid var(--line-strong);
+  background: color-mix(in srgb, var(--surface-strong) 90%, transparent);
+  backdrop-filter: blur(12px);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+  padding: 0.5rem;
+}
+
+.nav-btn {
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-soft);
+  padding: 0.5rem 0.3rem;
+  font-size: 0.72rem;
+  display: grid;
+  place-items: center;
+  gap: 0.1rem;
+  transition: all 0.18s ease;
+}
+
+.nav-btn:hover {
+  color: var(--text);
+}
+
+.nav-btn.active {
+  color: var(--text);
+  border-color: var(--line-strong);
+  background: color-mix(in srgb, var(--primary) 16%, transparent);
+}
+
+.icon {
+  font-size: 1rem;
+}
+
+.link-button,
+.icon-btn,
+.back-btn,
+.back-btn-new,
+.settings-theme-btn,
+.matchup-reroll-btn,
+.matchup-add-btn,
+.matchup-remove-btn,
+.matchup-add-btn-small,
+.matchup-remove-btn-small,
+.year-pill {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--chip-bg) 92%, #ffffff 8%);
+  color: var(--text);
+  padding: 0.45rem 0.62rem;
+}
+
+.link-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-soft);
+}
+
+.login-btn,
+.cta-btn,
+.view-all-btn,
+.game-action-btn,
+.compare-stats-btn,
+.logout-btn {
+  border: 1px solid color-mix(in srgb, var(--primary) 48%, transparent);
+  border-radius: 11px;
+  color: #fff;
+  background:
+    linear-gradient(120deg, color-mix(in srgb, var(--primary) 84%, #ffffff 16%), color-mix(in srgb, var(--secondary) 82%, #ffffff 18%));
+  padding: 0.58rem 0.84rem;
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--primary) 28%, transparent);
+  transition: transform 0.16s ease, box-shadow 0.2s ease;
+}
+
+:root[data-theme='beige'] .login-btn,
+:root[data-theme='beige'] .cta-btn,
+:root[data-theme='beige'] .view-all-btn,
+:root[data-theme='beige'] .game-action-btn,
+:root[data-theme='beige'] .compare-stats-btn,
+:root[data-theme='beige'] .logout-btn {
+  color: #1f1712;
+}
+
+.login-btn:hover,
+.cta-btn:hover,
+.view-all-btn:hover,
+.game-action-btn:hover,
+.compare-stats-btn:hover,
+.logout-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 26px color-mix(in srgb, var(--primary) 34%, transparent);
+}
+
+.settings-theme-btn.active {
+  border-color: color-mix(in srgb, var(--primary) 60%, transparent);
+  background: color-mix(in srgb, var(--primary) 18%, var(--chip-bg));
+}
+
+@media (max-width: 980px) {
+  .stats-grid-large,
+  .player-stats-grid,
+  .matchup-stats-board {
+    grid-template-columns: 1fr;
+  }
+
+  .matchup-teams-row,
+  .matchup-actions,
+  .settings-theme-actions,
+  .game-matchup-enhanced {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .team-section {
+    width: 100%;
+  }
+
+  .matchup-vs,
+  .vs-divider {
+    align-self: center;
+  }
+}
+
+@media (max-width: 760px) {
+  .main-content,
+  .stats-main,
+  .settings-main {
+    width: calc(100% - 1rem);
+    padding: 0.9rem 0 108px;
+  }
+
+  .header-content,
+  .settings-header {
+    width: calc(100% - 1rem);
+    min-height: 62px;
+  }
+
+  .page-logo,
+  .page-title,
+  .settings-title {
+    font-size: 0.95rem;
+  }
+
+  .section-title,
+  .cta-title,
+  .settings-detail-title {
+    font-size: 0.95rem;
+  }
+
+  .game-info,
+  .team-section,
+  .matchup-ai-left,
+  .matchup-ai-right,
+  .settings-item-content {
+    flex-wrap: wrap;
+  }
 }
