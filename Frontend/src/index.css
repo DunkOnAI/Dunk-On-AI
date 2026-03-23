@@ -238,6 +238,11 @@ button {
   letter-spacing: 0.05em;
 }
 
+.home-page .page-logo {
+  font-size: clamp(1.35rem, 3.3vw, 2rem);
+  letter-spacing: 0.06em;
+}
+
 .app-title,
 .page-logo,
 .page-title,
@@ -639,6 +644,35 @@ button {
   padding: 0.36rem 0.46rem;
   text-align: center;
   background: var(--inner-card-bg);
+}
+
+.player-select-badge {
+  min-width: 40px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.player-select-badge.is-roster {
+  background: #22c55e;
+  border-color: color-mix(in srgb, #22c55e 72%, #0f172a);
+  color: #052e16;
+  font-size: 1rem;
+}
+
+.player-select-badge.is-pending {
+  background: color-mix(in srgb, var(--primary) 72%, #ffffff 28%);
+  border-color: color-mix(in srgb, var(--primary) 68%, #0f172a);
+  color: #081225;
+  font-size: 1rem;
 }
 
 .matchup-team-badge.ai {

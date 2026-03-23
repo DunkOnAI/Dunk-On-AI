@@ -976,9 +976,9 @@ const StatsPage = ({ onBack, onNavigate, authUser, onRosterSaved }) => {
                     ? { opacity: 0.45 }
                     : {};
               const badgeStyle = inRoster
-                ? { background: '#22c55e', color: '#000', cursor: 'default' }
+                ? { cursor: 'default' }
                 : isPending
-                  ? { background: 'var(--accent, #00d4ff)', color: '#000', cursor: 'pointer' }
+                  ? { cursor: 'pointer' }
                   : isPositionTaken
                     ? { opacity: 0.5, cursor: 'not-allowed' }
                     : { cursor: 'pointer' };
@@ -1001,14 +1001,9 @@ const StatsPage = ({ onBack, onNavigate, authUser, onRosterSaved }) => {
                   <div className="player-avatar-section">
                     <div className="player-avatar-stats">
                       <div
-                        className="jersey-number"
+                        className={`jersey-number player-select-badge ${inRoster ? 'is-roster' : isPending ? 'is-pending' : ''}`}
                         style={{
                           ...badgeStyle,
-                          fontSize: player.position.length > 2 ? '0.55rem' : '0.8rem',
-                          lineHeight: 1.1,
-                          wordBreak: 'break-all',
-                          textAlign: 'center',
-                          overflow: 'hidden',
                         }}
                         title={inRoster ? 'In Roster' : isPending ? 'Tap to deselect' : 'Tap to select for roster'}
                         onClick={(e) => { e.stopPropagation(); togglePending(player); }}
@@ -1102,6 +1097,18 @@ const AI_MOCK_POOL = [
   { id: 105, name: 'Rex Carter', number: 55, position: 'C', pts: 15.2, reb: 12.0, ast: 1.5 },
 ];
 
+const jitter = (value, amount = 1.4) => Math.max(0, (Number(value) || 0) + (Math.random() * 2 - 1) * amount);
+
+const makeFallbackAiTeam = () => {
+  const shuffled = [...AI_MOCK_POOL].sort(() => Math.random() - 0.5);
+  return shuffled.map((p) => ({
+    ...p,
+    pts: Number(jitter(p.pts, 1.8).toFixed(1)),
+    reb: Number(jitter(p.reb, 1.2).toFixed(1)),
+    ast: Number(jitter(p.ast, 1.2).toFixed(1)),
+  }));
+};
+
 const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification, roster, rosterLoading, onRosterUpdated }) => {
   const [highlightedRosterId, setHighlightedRosterId] = useState(null);
   const [removing, setRemoving] = useState(false);
@@ -1118,15 +1125,17 @@ const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification, roster, 
   const fetchAiTeam = async () => {
     setAiLoading(true);
     try {
-      const res = await fetch('/api/matchup/ai-team');
+      const res = await fetch(`/api/matchup/ai-team?ts=${Date.now()}`, { cache: 'no-store' });
       if (!res.ok) throw new Error('API unavailable');
       const data = await res.json();
       if (data.team && data.team.length > 0) {
         setAiPlayers(data.team);
+      } else {
+        setAiPlayers(makeFallbackAiTeam());
       }
     } catch {
       // fallback to mock pool — data collection hasn't been run yet
-      setAiPlayers(AI_MOCK_POOL);
+      setAiPlayers(makeFallbackAiTeam());
     } finally {
       setAiLoading(false);
     }
