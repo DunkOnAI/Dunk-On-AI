@@ -20,6 +20,7 @@
   --danger: #f06e77;
   --card-bg: color-mix(in srgb, var(--surface-strong) 94%, #ffffff 6%);
   --chip-bg: color-mix(in srgb, var(--surface) 94%, #ffffff 6%);
+  --inner-card-bg: color-mix(in srgb, #0a1022 74%, var(--chip-bg));
   --glow: 0 18px 42px rgba(4, 10, 24, 0.46);
 }
 
@@ -42,6 +43,7 @@
   --danger: #b44d4d;
   --card-bg: color-mix(in srgb, var(--surface-strong) 96%, #ffffff 4%);
   --chip-bg: color-mix(in srgb, var(--surface) 95%, #ffffff 5%);
+  --inner-card-bg: color-mix(in srgb, #d8c4a8 72%, var(--chip-bg));
   --glow: 0 15px 34px rgba(110, 87, 56, 0.14);
 }
 
@@ -452,7 +454,7 @@ button {
   display: grid;
   place-items: center;
   font-size: 1.28rem;
-  background: color-mix(in srgb, var(--chip-bg) 92%, #ffffff 8%);
+  background: var(--inner-card-bg);
   border: 1px solid var(--line);
 }
 
@@ -480,6 +482,8 @@ button {
   border-radius: 14px;
   position: relative;
   overflow: hidden;
+  background: var(--inner-card-bg);
+  border-color: color-mix(in srgb, var(--line-strong) 92%, transparent);
 }
 
 .game-card-enhanced::before,
@@ -536,7 +540,7 @@ button {
   border-radius: 11px;
   display: grid;
   place-items: center;
-  background: color-mix(in srgb, var(--chip-bg) 94%, #ffffff 6%);
+  background: var(--inner-card-bg);
   border: 1px solid var(--line);
 }
 
@@ -554,7 +558,7 @@ button {
   padding: 0.35rem 0.54rem;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: color-mix(in srgb, var(--chip-bg) 92%, #ffffff 8%);
+  background: var(--inner-card-bg);
   color: var(--primary);
   font-size: 0.84rem;
   letter-spacing: 0.04em;
@@ -599,6 +603,8 @@ button {
   padding: 0.56rem;
   border-radius: 12px;
   text-align: center;
+  background: var(--inner-card-bg);
+  border-color: color-mix(in srgb, var(--line-strong) 90%, transparent);
 }
 
 .stat-value-small {
@@ -617,7 +623,7 @@ button {
   border: 1px solid var(--line);
   padding: 0.36rem 0.46rem;
   text-align: center;
-  background: color-mix(in srgb, var(--chip-bg) 92%, #ffffff 8%);
+  background: var(--inner-card-bg);
 }
 
 .matchup-team-badge.ai {
@@ -752,7 +758,7 @@ button {
   display: grid;
   place-items: center;
   border: 1px solid var(--line);
-  background: color-mix(in srgb, var(--chip-bg) 92%, #ffffff 8%);
+  background: var(--inner-card-bg);
 }
 
 .settings-arrow {
