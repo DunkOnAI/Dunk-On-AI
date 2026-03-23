@@ -373,7 +373,7 @@ const HomePage = ({ authUser, onLogout, onSettings, onNavigate }) => {
     if (!authUser?.id) return;
     setHistoryLoading(true);
     fetch(`/api/users/${authUser.id}/match-history`)
-      .then(r => r.json())
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
       .then(data => setMatchHistory(data.games || []))
       .catch(() => setMatchHistory([]))
       .finally(() => setHistoryLoading(false));
@@ -1195,7 +1195,9 @@ const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification, roster, 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ yourScore, aiScore, winner, yourPlayers: yourPlayerSnap, aiPlayers: aiPlayerSnap }),
-      }).catch(err => console.error('Failed to save match:', err));
+      })
+        .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); })
+        .catch(err => console.error('Failed to save match:', err));
     }
     if (onNewNotification) {
       onNewNotification({
