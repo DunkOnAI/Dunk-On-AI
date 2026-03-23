@@ -61,11 +61,30 @@ def get_player_stats():
         api_delay = float(config["API"]["api_delay"])
         season_str = config["API"]["season"]
 
-        w_points = float(config["FANTASY"]["points"])
-        w_rebounds = float(config["FANTASY"]["rebounds"])
-        w_assists = float(config["FANTASY"]["assists"])
-        w_steals = float(config["FANTASY"]["steals"])
-        w_blocks = float(config["FANTASY"]["blocks"])
+        weights_by_position = {
+            "Guard": {
+                "points":   float(config["FANTASY_GUARD"]["points"]),
+                "rebounds": float(config["FANTASY_GUARD"]["rebounds"]),
+                "assists":  float(config["FANTASY_GUARD"]["assists"]),
+                "steals":   float(config["FANTASY_GUARD"]["steals"]),
+                "blocks":   float(config["FANTASY_GUARD"]["blocks"]),
+            },
+            "Forward": {
+                "points":   float(config["FANTASY_FORWARD"]["points"]),
+                "rebounds": float(config["FANTASY_FORWARD"]["rebounds"]),
+                "assists":  float(config["FANTASY_FORWARD"]["assists"]),
+                "steals":   float(config["FANTASY_FORWARD"]["steals"]),
+                "blocks":   float(config["FANTASY_FORWARD"]["blocks"]),
+            },
+            "Center": {
+                "points":   float(config["FANTASY_CENTER"]["points"]),
+                "rebounds": float(config["FANTASY_CENTER"]["rebounds"]),
+                "assists":  float(config["FANTASY_CENTER"]["assists"]),
+                "steals":   float(config["FANTASY_CENTER"]["steals"]),
+                "blocks":   float(config["FANTASY_CENTER"]["blocks"]),
+            },
+        }
+        default_weights = weights_by_position["Guard"]
 
         # Load players.csv
         players_path = os.path.join("data", "raw", "players.csv")
@@ -81,6 +100,7 @@ def get_player_stats():
         players_df = pd.read_csv(players_path)
 
         valid_player_ids = set(players_df["PLAYER_ID"].astype(int))
+        position_lookup = dict(zip(players_df["PLAYER_ID"].astype(int), players_df["POSITION"]))
 
         print(f"[INFO] Players in players.csv: {len(valid_player_ids)}")
 
@@ -191,13 +211,15 @@ def get_player_stats():
                 player_df["is_home_game"] = player_df["MATCHUP"].apply(lambda x: 1 if "vs." in x else 0)
                 player_df["opponent"] = player_df["MATCHUP"].apply(lambda x: x.split("vs. ")[1] if "vs." in x else x.split("@ ")[1])
 
-                # Fantasy points
+                # Fantasy points — use position-specific weights
+                pos = position_lookup.get(int(player_id), "UNKNOWN")
+                w = weights_by_position.get(pos, default_weights)
                 player_df["fantasy_points"] = (
-                    w_points * player_df["PTS"] +
-                    w_rebounds * player_df["REB"] +
-                    w_assists * player_df["AST"] +
-                    w_steals * player_df["STL"] +
-                    w_blocks * player_df["BLK"]
+                    w["points"]   * player_df["PTS"] +
+                    w["rebounds"] * player_df["REB"] +
+                    w["assists"]  * player_df["AST"] +
+                    w["steals"]   * player_df["STL"] +
+                    w["blocks"]   * player_df["BLK"]
                 )
 
                 # Build output
