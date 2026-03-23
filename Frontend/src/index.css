@@ -2038,3 +2038,729 @@
     font-size: 0.65rem;
   }
 }
+
+/* ============================================
+   PAGE REDESIGN V3 (LOGIN + HOME + STATS + MATCHUP)
+   ============================================ */
+
+:root {
+  --v3-bg-a: #070b15;
+  --v3-bg-b: #11192d;
+  --v3-surface: rgba(23, 31, 52, 0.86);
+  --v3-surface-2: rgba(29, 40, 66, 0.94);
+  --v3-line: rgba(143, 166, 206, 0.24);
+  --v3-line-strong: rgba(143, 166, 206, 0.4);
+  --v3-text: #f3f7ff;
+  --v3-text-soft: #abc0e2;
+  --v3-accent: #2dc4ff;
+  --v3-accent-2: #ff6b52;
+  --v3-shadow: 0 16px 34px rgba(2, 8, 22, 0.34);
+}
+
+:root[data-theme='beige'] {
+  --v3-bg-a: #efe6d9;
+  --v3-bg-b: #e6d9c6;
+  --v3-surface: rgba(255, 248, 238, 0.92);
+  --v3-surface-2: rgba(251, 242, 230, 0.98);
+  --v3-line: rgba(120, 96, 66, 0.24);
+  --v3-line-strong: rgba(120, 96, 66, 0.4);
+  --v3-text: #2e261f;
+  --v3-text-soft: #6d5e49;
+  --v3-accent: #4e708f;
+  --v3-accent-2: #bd6a4e;
+  --v3-shadow: 0 12px 24px rgba(91, 73, 49, 0.12);
+}
+
+.login-page,
+.home-page,
+.stats-page {
+  background:
+    radial-gradient(860px 360px at -8% -10%, color-mix(in srgb, var(--v3-accent) 22%, transparent), transparent 58%),
+    radial-gradient(860px 360px at 108% 114%, color-mix(in srgb, var(--v3-accent-2) 20%, transparent), transparent 58%),
+    linear-gradient(160deg, var(--v3-bg-a), var(--v3-bg-b)) !important;
+  color: var(--v3-text) !important;
+}
+
+.login-container,
+.performance-section,
+.games-section,
+.players-section,
+.team-stats-section,
+.matchup-hero-card,
+.matchup-result-card,
+.matchup-ai-card,
+.cta-section,
+.stat-card-large,
+.analytics-card,
+.game-card-enhanced {
+  background: var(--v3-surface) !important;
+  border: 1px solid var(--v3-line) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--v3-shadow) !important;
+  backdrop-filter: blur(7px);
+}
+
+.page-header {
+  border-bottom: 1px solid var(--v3-line-strong) !important;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--v3-accent-2) 10%, transparent), color-mix(in srgb, var(--v3-accent) 10%, transparent)),
+    color-mix(in srgb, var(--v3-surface-2) 90%, transparent) !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.page-logo,
+.page-title,
+.section-title,
+.selector-title,
+.cta-title,
+.app-title {
+  color: var(--v3-text) !important;
+  text-shadow: none !important;
+  letter-spacing: 0.01em !important;
+}
+
+.auth-subtitle,
+.signed-in-label,
+.cta-text,
+.stat-label-large,
+.stat-label-small,
+.player-position,
+.analytics-title,
+.matchup-hint,
+.game-date,
+.game-quarter,
+.stat-extra {
+  color: var(--v3-text-soft) !important;
+}
+
+.main-content,
+.stats-main {
+  max-width: 1120px !important;
+  margin: 0 auto !important;
+  padding-bottom: 108px !important;
+}
+
+.player-card,
+.matchup-team-block,
+.matchup-ai-item,
+.stat-item,
+.icon-btn,
+.back-btn-new,
+.back-btn,
+.year-pill {
+  background: var(--v3-surface-2) !important;
+  border: 1px solid var(--v3-line) !important;
+  border-radius: 11px !important;
+}
+
+.player-card:hover,
+.matchup-team-block:hover,
+.matchup-ai-item:hover,
+.year-pill:hover {
+  border-color: var(--v3-line-strong) !important;
+  transform: translateY(-1px);
+}
+
+.login-form input,
+input[type='text'],
+input[type='email'],
+input[type='password'],
+select,
+textarea {
+  background: color-mix(in srgb, var(--v3-surface-2) 92%, white 8%) !important;
+  border: 1px solid var(--v3-line) !important;
+  border-radius: 11px !important;
+  color: var(--v3-text) !important;
+}
+
+.login-form input::placeholder,
+input::placeholder,
+textarea::placeholder {
+  color: var(--v3-text-soft) !important;
+}
+
+.login-form input:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none !important;
+  border-color: color-mix(in srgb, var(--v3-accent) 60%, var(--v3-line)) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--v3-accent) 20%, transparent) !important;
+}
+
+.login-btn,
+.cta-btn,
+.game-action-btn,
+.compare-stats-btn,
+.logout-btn,
+.view-all-btn {
+  border-radius: 10px !important;
+  border: 1px solid transparent !important;
+  color: #fff !important;
+  background: linear-gradient(120deg, var(--v3-accent-2), var(--v3-accent)) !important;
+  box-shadow: 0 8px 18px rgba(11, 24, 46, 0.28) !important;
+}
+
+.login-btn:hover,
+.cta-btn:hover,
+.game-action-btn:hover,
+.compare-stats-btn:hover,
+.logout-btn:hover,
+.view-all-btn:hover {
+  transform: translateY(-1px);
+}
+
+.bottom-nav {
+  border-top: 1px solid var(--v3-line-strong) !important;
+  background: color-mix(in srgb, var(--v3-bg-a) 84%, var(--v3-surface-2)) !important;
+  box-shadow: 0 -10px 20px rgba(0, 0, 0, 0.18) !important;
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom)) !important;
+}
+
+.nav-btn {
+  border: 1px solid transparent !important;
+  border-radius: 10px !important;
+  color: var(--v3-text-soft) !important;
+  background: transparent !important;
+}
+
+.nav-btn.active {
+  color: var(--v3-text) !important;
+  border-color: var(--v3-line-strong) !important;
+  background: color-mix(in srgb, var(--v3-accent) 16%, transparent) !important;
+}
+
+.matchup-vs,
+.trend-icon,
+.matchup-team-badge,
+.matchup-team-badge.ai {
+  text-shadow: none !important;
+}
+
+.matchup-meter {
+  border: 1px solid var(--v3-line) !important;
+  border-radius: 999px !important;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--v3-surface-2) 84%, transparent) !important;
+}
+
+.matchup-meter-fill {
+  background: linear-gradient(120deg, var(--v3-accent), var(--v3-accent-2)) !important;
+}
+
+.matchup-bar.your {
+  background: linear-gradient(120deg, var(--v3-accent), color-mix(in srgb, var(--v3-accent) 55%, white)) !important;
+}
+
+.matchup-bar.ai {
+  background: linear-gradient(120deg, var(--v3-accent-2), color-mix(in srgb, var(--v3-accent-2) 55%, white)) !important;
+}
+
+@media (max-width: 768px) {
+  .main-content,
+  .stats-main {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .performance-section,
+  .games-section,
+  .players-section,
+  .team-stats-section,
+  .matchup-hero-card,
+  .matchup-result-card,
+  .matchup-ai-card,
+  .cta-section {
+    padding: 14px !important;
+  }
+}
+
+/* ============================================
+   FINAL STYLE RESET — CLEAN PREMIUM
+   ============================================ */
+
+:root {
+  --final-bg: #0a1020;
+  --final-bg-soft: #101a2f;
+  --final-surface: rgba(23, 34, 58, 0.9);
+  --final-surface-soft: rgba(30, 44, 73, 0.94);
+  --final-line: rgba(147, 169, 205, 0.24);
+  --final-line-strong: rgba(147, 169, 205, 0.4);
+  --final-text: #eef4ff;
+  --final-text-soft: #a9bcd9;
+  --final-accent: #4f8fff;
+  --final-accent-2: #ff7a59;
+  --final-shadow: 0 14px 30px rgba(3, 8, 20, 0.26);
+}
+
+:root[data-theme='beige'] {
+  --final-bg: #f4ebde;
+  --final-bg-soft: #ebdecb;
+  --final-surface: rgba(255, 249, 240, 0.94);
+  --final-surface-soft: rgba(251, 242, 230, 0.98);
+  --final-line: rgba(123, 98, 68, 0.24);
+  --final-line-strong: rgba(123, 98, 68, 0.4);
+  --final-text: #302820;
+  --final-text-soft: #6d5d48;
+  --final-accent: #507194;
+  --final-accent-2: #c56f51;
+  --final-shadow: 0 12px 24px rgba(93, 74, 49, 0.12);
+}
+
+body,
+.login-page,
+.home-page,
+.stats-page,
+.settings-page {
+  background:
+    radial-gradient(780px 340px at 0% 0%, color-mix(in srgb, var(--final-accent) 20%, transparent), transparent 58%),
+    radial-gradient(780px 340px at 100% 100%, color-mix(in srgb, var(--final-accent-2) 18%, transparent), transparent 58%),
+    linear-gradient(160deg, var(--final-bg), var(--final-bg-soft)) !important;
+  color: var(--final-text) !important;
+}
+
+h1,h2,h3,h4,h5,h6,
+.page-logo,.page-title,.settings-title,.section-title,.selector-title,.app-title {
+  font-family: 'Sora', 'Manrope', sans-serif !important;
+  text-transform: none !important;
+  letter-spacing: 0.01em !important;
+  text-shadow: none !important;
+  color: var(--final-text) !important;
+}
+
+.page-header,
+.settings-header,
+.bottom-nav {
+  background: color-mix(in srgb, var(--final-surface-soft) 92%, transparent) !important;
+  border-color: var(--final-line-strong) !important;
+  box-shadow: 0 10px 22px rgba(2, 7, 18, 0.18) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.performance-section,
+.games-section,
+.players-section,
+.team-stats-section,
+.settings-container,
+.settings-detail-card,
+.cta-section,
+.matchup-hero-card,
+.matchup-result-card,
+.matchup-ai-card,
+.stat-card-large,
+.analytics-card,
+.game-card-enhanced,
+.login-container {
+  background: var(--final-surface) !important;
+  border: 1px solid var(--final-line) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--final-shadow) !important;
+}
+
+.player-card,
+.settings-item,
+.matchup-team-block,
+.matchup-ai-item,
+.stat-item,
+.year-pill,
+.icon-btn,
+.back-btn,
+.back-btn-new {
+  background: var(--final-surface-soft) !important;
+  border: 1px solid var(--final-line) !important;
+  border-radius: 10px !important;
+  color: var(--final-text) !important;
+  transition: transform 0.16s ease, border-color 0.16s ease;
+}
+
+.player-card:hover,
+.settings-item:hover,
+.matchup-team-block:hover,
+.matchup-ai-item:hover,
+.year-pill:hover,
+.icon-btn:hover,
+.back-btn:hover,
+.back-btn-new:hover {
+  transform: translateY(-1px);
+  border-color: var(--final-line-strong) !important;
+}
+
+.auth-subtitle,
+.auth-hint,
+.signed-in-label,
+.cta-text,
+.stat-label-large,
+.stat-label-small,
+.player-position,
+.analytics-title,
+.matchup-hint,
+.game-date,
+.game-quarter,
+.stat-extra,
+.settings-detail-empty,
+.settings-label,
+.link-button {
+  color: var(--final-text-soft) !important;
+}
+
+.login-form input,
+input[type='text'],
+input[type='email'],
+input[type='password'],
+select,
+textarea {
+  background: color-mix(in srgb, var(--final-surface-soft) 94%, white 6%) !important;
+  border: 1px solid var(--final-line) !important;
+  border-radius: 10px !important;
+  color: var(--final-text) !important;
+}
+
+.login-form input::placeholder,
+input::placeholder,
+textarea::placeholder {
+  color: var(--final-text-soft) !important;
+}
+
+.login-form input:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none !important;
+  border-color: color-mix(in srgb, var(--final-accent) 56%, var(--final-line)) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--final-accent) 18%, transparent) !important;
+}
+
+.login-btn,
+.cta-btn,
+.game-action-btn,
+.compare-stats-btn,
+.logout-btn,
+.view-all-btn {
+  border: 1px solid transparent !important;
+  border-radius: 10px !important;
+  color: #fff !important;
+  background: linear-gradient(120deg, var(--final-accent), var(--final-accent-2)) !important;
+  box-shadow: 0 8px 18px rgba(12, 26, 48, 0.24) !important;
+}
+
+.login-btn:hover,
+.cta-btn:hover,
+.game-action-btn:hover,
+.compare-stats-btn:hover,
+.logout-btn:hover,
+.view-all-btn:hover {
+  transform: translateY(-1px);
+}
+
+.nav-btn {
+  border: 1px solid transparent !important;
+  border-radius: 10px !important;
+  color: var(--final-text-soft) !important;
+  background: transparent !important;
+}
+
+.nav-btn.active {
+  color: var(--final-text) !important;
+  border-color: var(--final-line-strong) !important;
+  background: color-mix(in srgb, var(--final-accent) 16%, transparent) !important;
+}
+
+.nav-btn:hover {
+  color: var(--final-text) !important;
+}
+
+.matchup-meter,
+.matchup-bars {
+  border-color: var(--final-line) !important;
+}
+
+.matchup-meter-fill,
+.matchup-bar.your {
+  background: linear-gradient(120deg, var(--final-accent), color-mix(in srgb, var(--final-accent) 55%, white)) !important;
+}
+
+.matchup-bar.ai {
+  background: linear-gradient(120deg, var(--final-accent-2), color-mix(in srgb, var(--final-accent-2) 55%, white)) !important;
+}
+
+@media (max-width: 768px) {
+  .main-content,
+  .stats-main,
+  .settings-main {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}
+
+/* ============================================
+   UNIFIED BACKGROUND (ALL PAGES)
+   ============================================ */
+
+:root {
+  --unified-bg-a: #060b1a;
+  --unified-bg-b: #101838;
+  --unified-bg-c: #271f55;
+}
+
+body,
+.login-page,
+.home-page,
+.stats-page,
+.settings-page {
+  background:
+    radial-gradient(1100px 520px at -8% -12%, color-mix(in srgb, #4a8be6 28%, transparent), transparent 58%),
+    radial-gradient(1000px 500px at 108% 115%, color-mix(in srgb, #7b4fe0 24%, transparent), transparent 60%),
+    linear-gradient(160deg, var(--unified-bg-a), var(--unified-bg-b) 55%, var(--unified-bg-c)) !important;
+}
+
+/* ============================================
+   PROFESSIONAL MASTER THEME (OVERRIDES ALL)
+   ============================================ */
+
+:root {
+  --pro-bg-1: #06080f;
+  --pro-bg-2: #0a0f1d;
+  --pro-bg-3: #111536;
+  --pro-surface: rgba(8, 10, 14, 0.92);
+  --pro-surface-2: rgba(12, 15, 22, 0.96);
+  --pro-line: rgba(118, 129, 148, 0.26);
+  --pro-line-strong: rgba(140, 153, 176, 0.4);
+  --pro-text: #edf4ff;
+  --pro-text-soft: #a7bbdb;
+  --pro-primary: #4f8fff;
+  --pro-secondary: #e06c52;
+  --pro-shadow: 0 14px 32px rgba(0, 0, 0, 0.42);
+}
+
+:root[data-theme='beige'] {
+  --pro-bg-1: #efe6d9;
+  --pro-bg-2: #e6d9c6;
+  --pro-bg-3: #ddceb9;
+  --pro-surface: rgba(255, 248, 238, 0.94);
+  --pro-surface-2: rgba(251, 242, 230, 0.98);
+  --pro-line: rgba(122, 98, 68, 0.24);
+  --pro-line-strong: rgba(122, 98, 68, 0.38);
+  --pro-text: #2f271f;
+  --pro-text-soft: #6d5d48;
+  --pro-primary: #4f7194;
+  --pro-secondary: #c56f51;
+  --pro-shadow: 0 12px 24px rgba(91, 73, 49, 0.12);
+}
+
+body,
+.login-page,
+.home-page,
+.stats-page,
+.settings-page {
+  background:
+    radial-gradient(1200px 520px at -10% -10%, rgba(79, 143, 255, 0.18), transparent 58%),
+    radial-gradient(1000px 500px at 110% 115%, rgba(123, 91, 224, 0.16), transparent 60%),
+    linear-gradient(160deg, #070b15, #0f1730 55%, #181b3e) !important;
+  color: var(--pro-text) !important;
+}
+
+h1, h2, h3, h4, h5, h6,
+.page-logo, .page-title, .settings-title, .section-title, .selector-title, .app-title {
+  font-family: 'Manrope', 'Segoe UI', sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.01em !important;
+  text-transform: none !important;
+  text-shadow: none !important;
+  color: var(--pro-text) !important;
+}
+
+.page-header,
+.settings-header {
+  border-bottom: 1px solid var(--pro-line-strong) !important;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--pro-primary) 9%, transparent), color-mix(in srgb, var(--pro-secondary) 9%, transparent)),
+    color-mix(in srgb, var(--pro-surface-2) 92%, transparent) !important;
+  box-shadow: 0 10px 20px rgba(2, 7, 18, 0.16) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.main-content,
+.stats-main,
+.settings-main {
+  max-width: 1120px !important;
+  margin: 0 auto !important;
+  padding-bottom: 106px !important;
+}
+
+.performance-section,
+.games-section,
+.players-section,
+.team-stats-section,
+.settings-container,
+.settings-detail-card,
+.matchup-hero-card,
+.matchup-result-card,
+.matchup-ai-card,
+.cta-section,
+.login-container,
+.stat-card-large,
+.analytics-card,
+.game-card-enhanced {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid var(--pro-line) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18) !important;
+  backdrop-filter: blur(7px);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.player-card,
+.settings-item,
+.matchup-team-block,
+.matchup-ai-item,
+.stat-item,
+.year-pill,
+.icon-btn,
+.back-btn,
+.back-btn-new {
+  background: rgba(255, 255, 255, 0.015) !important;
+  border: 1px solid var(--pro-line) !important;
+  border-radius: 11px !important;
+  color: var(--pro-text) !important;
+  transition: transform 0.16s ease, border-color 0.16s ease;
+}
+
+.player-card:hover,
+.settings-item:hover,
+.matchup-team-block:hover,
+.matchup-ai-item:hover,
+.year-pill:hover,
+.icon-btn:hover,
+.back-btn:hover,
+.back-btn-new:hover {
+  transform: translateY(-1px);
+  border-color: var(--pro-line-strong) !important;
+}
+
+.auth-subtitle,
+.auth-hint,
+.signed-in-label,
+.stat-label-large,
+.stat-label-small,
+.stat-extra,
+.player-position,
+.analytics-title,
+.game-date,
+.game-quarter,
+.cta-text,
+.matchup-hint,
+.settings-label,
+.settings-detail-empty,
+.link-button {
+  color: var(--pro-text-soft) !important;
+}
+
+.login-form input,
+input[type='text'],
+input[type='email'],
+input[type='password'],
+select,
+textarea {
+  background: color-mix(in srgb, var(--pro-surface-2) 93%, white 7%) !important;
+  border: 1px solid var(--pro-line) !important;
+  border-radius: 10px !important;
+  color: var(--pro-text) !important;
+}
+
+.login-form input::placeholder,
+input::placeholder,
+textarea::placeholder {
+  color: var(--pro-text-soft) !important;
+}
+
+.login-form input:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none !important;
+  border-color: color-mix(in srgb, var(--pro-primary) 56%, var(--pro-line)) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pro-primary) 16%, transparent) !important;
+}
+
+.login-btn,
+.cta-btn,
+.game-action-btn,
+.compare-stats-btn,
+.logout-btn,
+.view-all-btn {
+  border-radius: 10px !important;
+  border: 1px solid transparent !important;
+  color: #fff !important;
+  background: linear-gradient(120deg, var(--pro-primary), var(--pro-secondary)) !important;
+  box-shadow: 0 8px 16px rgba(11, 24, 46, 0.22) !important;
+}
+
+.login-btn:hover,
+.cta-btn:hover,
+.game-action-btn:hover,
+.compare-stats-btn:hover,
+.logout-btn:hover,
+.view-all-btn:hover {
+  transform: translateY(-1px);
+}
+
+.bottom-nav {
+  border-top: 1px solid var(--pro-line-strong) !important;
+  background: color-mix(in srgb, var(--pro-bg-1) 84%, var(--pro-surface-2)) !important;
+  box-shadow: 0 -8px 18px rgba(0, 0, 0, 0.16) !important;
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom)) !important;
+}
+
+.nav-btn {
+  border: 1px solid transparent !important;
+  border-radius: 10px !important;
+  color: var(--pro-text-soft) !important;
+  background: transparent !important;
+}
+
+.nav-btn.active {
+  color: var(--pro-text) !important;
+  border-color: var(--pro-line-strong) !important;
+  background: color-mix(in srgb, var(--pro-primary) 16%, transparent) !important;
+}
+
+.nav-btn:hover {
+  color: var(--pro-text) !important;
+}
+
+.matchup-meter {
+  border: 1px solid var(--pro-line) !important;
+  border-radius: 999px !important;
+  background: color-mix(in srgb, var(--pro-surface-2) 88%, transparent) !important;
+}
+
+.matchup-meter-fill,
+.matchup-bar.your {
+  background: linear-gradient(120deg, var(--pro-primary), color-mix(in srgb, var(--pro-primary) 55%, white)) !important;
+}
+
+.matchup-bar.ai {
+  background: linear-gradient(120deg, var(--pro-secondary), color-mix(in srgb, var(--pro-secondary) 55%, white)) !important;
+}
+
+@media (max-width: 768px) {
+  .main-content,
+  .stats-main,
+  .settings-main {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .performance-section,
+  .games-section,
+  .players-section,
+  .team-stats-section,
+  .matchup-hero-card,
+  .matchup-result-card,
+  .matchup-ai-card,
+  .cta-section,
+  .settings-container {
+    padding: 14px !important;
+  }
+}
