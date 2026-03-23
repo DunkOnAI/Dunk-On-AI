@@ -1,4 +1,6 @@
-﻿/* ============================================
+﻿@import url('https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double+Ink&display=swap');
+
+/* ============================================
    GLOBAL VARIABLES & RESETS
    ============================================ */
 
@@ -2493,6 +2495,26 @@ textarea:focus {
   }
 }
 
+/* Requested font change for the stat/bitcount grid */
+.kpi-grid,
+.kpi-grid * {
+  font-family: "Bitcount Grid Double Ink", "Orbitron", "Teko", "Manrope", sans-serif !important;
+}
+
+/* Force font across the full app */
+html,
+body,
+#root,
+*,
+*::before,
+*::after,
+button,
+input,
+select,
+textarea {
+  font-family: "Bitcount Grid Double Ink", "Orbitron", "Teko", "Manrope", sans-serif !important;
+}
+
 /* ============================================
    UNIFIED BACKGROUND (ALL PAGES)
    ============================================ */
@@ -2530,6 +2552,9 @@ body,
   --pro-text-soft: #a7bbdb;
   --pro-primary: #4f8fff;
   --pro-secondary: #e06c52;
+  --pro-glow-a: #4f8fff;
+  --pro-glow-b: #7b5be0;
+  --settings-glass: rgba(255, 255, 255, 0.14);
   --pro-shadow: 0 14px 32px rgba(0, 0, 0, 0.42);
 }
 
@@ -2545,6 +2570,9 @@ body,
   --pro-text-soft: #6d5d48;
   --pro-primary: #4f7194;
   --pro-secondary: #c56f51;
+  --pro-glow-a: #c7a983;
+  --pro-glow-b: #b88e7a;
+  --settings-glass: rgba(255, 255, 255, 0.56);
   --pro-shadow: 0 12px 24px rgba(91, 73, 49, 0.12);
 }
 
@@ -2554,9 +2582,9 @@ body,
 .stats-page,
 .settings-page {
   background:
-    radial-gradient(1200px 520px at -10% -10%, rgba(79, 143, 255, 0.18), transparent 58%),
-    radial-gradient(1000px 500px at 110% 115%, rgba(123, 91, 224, 0.16), transparent 60%),
-    linear-gradient(160deg, #070b15, #0f1730 55%, #181b3e) !important;
+    radial-gradient(1200px 520px at -10% -10%, color-mix(in srgb, var(--pro-glow-a) 22%, transparent), transparent 58%),
+    radial-gradient(1000px 500px at 110% 115%, color-mix(in srgb, var(--pro-glow-b) 20%, transparent), transparent 60%),
+    linear-gradient(160deg, var(--pro-bg-1), var(--pro-bg-2) 55%, var(--pro-bg-3)) !important;
   color: var(--pro-text) !important;
 }
 
@@ -2602,10 +2630,10 @@ h1, h2, h3, h4, h5, h6,
 .stat-card-large,
 .analytics-card,
 .game-card-enhanced {
-  background: rgba(255, 255, 255, 0.02) !important;
+  background: transparent !important;
   border: 1px solid var(--pro-line) !important;
   border-radius: 14px !important;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
   backdrop-filter: blur(7px);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
@@ -2619,7 +2647,7 @@ h1, h2, h3, h4, h5, h6,
 .icon-btn,
 .back-btn,
 .back-btn-new {
-  background: rgba(255, 255, 255, 0.015) !important;
+  background: transparent !important;
   border: 1px solid var(--pro-line) !important;
   border-radius: 11px !important;
   color: var(--pro-text) !important;
@@ -2662,7 +2690,7 @@ input[type='email'],
 input[type='password'],
 select,
 textarea {
-  background: color-mix(in srgb, var(--pro-surface-2) 93%, white 7%) !important;
+  background: color-mix(in srgb, var(--pro-surface-2) 40%, transparent) !important;
   border: 1px solid var(--pro-line) !important;
   border-radius: 10px !important;
   color: var(--pro-text) !important;
@@ -2763,4 +2791,347 @@ textarea:focus {
   .settings-container {
     padding: 14px !important;
   }
+}
+
+/* Settings glass finish */
+.settings-container,
+.settings-detail-card,
+.tab-panel,
+.settings-item {
+  background: var(--settings-glass) !important;
+  border: 1px solid var(--pro-line) !important;
+  backdrop-filter: blur(10px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(120%) !important;
+}
+
+/* Force all settings boxes/buttons to glass */
+.settings-page .panel,
+.settings-page .settings-layout,
+.settings-page .tab-panel,
+.settings-page .tab-col,
+.settings-page .settings-container,
+.settings-page .settings-detail-card,
+.settings-page .settings-item,
+.settings-page .tab-btn,
+.settings-page .toggle-row {
+  background: var(--settings-glass) !important;
+  border: 1px solid var(--pro-line) !important;
+  backdrop-filter: blur(10px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(120%) !important;
+}
+
+/* Absolute final override for navy fill on settings */
+html body .settings-page .panel,
+html body .settings-page .settings-layout,
+html body .settings-page .tab-panel,
+html body .settings-page .tab-col,
+html body .settings-page .settings-container,
+html body .settings-page .settings-detail-card,
+html body .settings-page .settings-item,
+html body .settings-page .tab-btn,
+html body .settings-page .toggle-row,
+html body .settings-page .menu-btn {
+  background-image: none !important;
+  background-color: var(--settings-glass) !important;
+}
+
+/* ============================================
+   UI REBOOT (FINAL)
+   ============================================ */
+
+:root {
+  --reboot-bg-1: #0d1320;
+  --reboot-bg-2: #172238;
+  --reboot-surface: rgba(22, 32, 52, 0.86);
+  --reboot-surface-2: rgba(28, 41, 67, 0.94);
+  --reboot-line: rgba(142, 164, 201, 0.24);
+  --reboot-line-strong: rgba(142, 164, 201, 0.4);
+  --reboot-text: #eef4ff;
+  --reboot-text-soft: #a9bdda;
+  --reboot-primary: #5a97ff;
+  --reboot-secondary: #ff7c62;
+  --reboot-shadow: 0 14px 28px rgba(4, 10, 22, 0.26);
+}
+
+:root[data-theme='beige'] {
+  --reboot-bg-1: #f3eadc;
+  --reboot-bg-2: #eadcc8;
+  --reboot-surface: rgba(255, 249, 241, 0.94);
+  --reboot-surface-2: rgba(252, 244, 233, 0.98);
+  --reboot-line: rgba(123, 98, 67, 0.24);
+  --reboot-line-strong: rgba(123, 98, 67, 0.42);
+  --reboot-text: #2e261e;
+  --reboot-text-soft: #6d5d48;
+  --reboot-primary: #4f7194;
+  --reboot-secondary: #c56f51;
+  --reboot-shadow: 0 12px 22px rgba(97, 78, 53, 0.12);
+}
+
+body,
+.login-page,
+.home-page,
+.stats-page,
+.settings-page {
+  background:
+    radial-gradient(900px 420px at 0% -10%, color-mix(in srgb, var(--reboot-primary) 18%, transparent), transparent 60%),
+    radial-gradient(900px 420px at 100% 112%, color-mix(in srgb, var(--reboot-secondary) 16%, transparent), transparent 62%),
+    linear-gradient(160deg, var(--reboot-bg-1), var(--reboot-bg-2)) !important;
+  color: var(--reboot-text) !important;
+}
+
+h1, h2, h3, h4, h5, h6,
+.page-logo, .page-title, .settings-title, .section-title, .selector-title, .app-title {
+  font-family: 'Manrope', 'Segoe UI', sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.005em !important;
+  text-transform: none !important;
+  text-shadow: none !important;
+  color: var(--reboot-text) !important;
+}
+
+.page-header,
+.settings-header {
+  border-bottom: 1px solid var(--reboot-line-strong) !important;
+  background: color-mix(in srgb, var(--reboot-surface-2) 92%, transparent) !important;
+  box-shadow: 0 8px 18px rgba(2, 7, 18, 0.16) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.main-content,
+.stats-main,
+.settings-main {
+  max-width: 1080px !important;
+  margin: 0 auto !important;
+  padding-bottom: 104px !important;
+}
+
+.performance-section,
+.games-section,
+.players-section,
+.team-stats-section,
+.settings-container,
+.settings-detail-card,
+.matchup-hero-card,
+.matchup-result-card,
+.matchup-ai-card,
+.cta-section,
+.login-container,
+.stat-card-large,
+.analytics-card,
+.game-card-enhanced,
+.settings-page .panel,
+.settings-page .tab-panel,
+.settings-page .settings-layout {
+  background: var(--reboot-surface) !important;
+  border: 1px solid var(--reboot-line) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--reboot-shadow) !important;
+  backdrop-filter: blur(6px) !important;
+}
+
+.player-card,
+.settings-item,
+.matchup-team-block,
+.matchup-ai-item,
+.stat-item,
+.year-pill,
+.icon-btn,
+.back-btn,
+.back-btn-new,
+.settings-page .tab-btn,
+.settings-page .menu-btn,
+.settings-page .toggle-row {
+  background: var(--reboot-surface-2) !important;
+  border: 1px solid var(--reboot-line) !important;
+  border-radius: 11px !important;
+  color: var(--reboot-text) !important;
+}
+
+.player-card:hover,
+.settings-item:hover,
+.matchup-team-block:hover,
+.matchup-ai-item:hover,
+.year-pill:hover,
+.icon-btn:hover,
+.back-btn:hover,
+.back-btn-new:hover,
+.settings-page .tab-btn:hover,
+.settings-page .menu-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--reboot-line-strong) !important;
+}
+
+.auth-subtitle,
+.auth-hint,
+.signed-in-label,
+.stat-label-large,
+.stat-label-small,
+.stat-extra,
+.player-position,
+.analytics-title,
+.game-date,
+.game-quarter,
+.cta-text,
+.matchup-hint,
+.settings-label,
+.settings-detail-empty,
+.link-button,
+.subtitle,
+.kicker,
+.muted {
+  color: var(--reboot-text-soft) !important;
+}
+
+.login-form input,
+input[type='text'],
+input[type='email'],
+input[type='password'],
+select,
+textarea,
+.search {
+  background: color-mix(in srgb, var(--reboot-surface-2) 92%, white 8%) !important;
+  border: 1px solid var(--reboot-line) !important;
+  border-radius: 10px !important;
+  color: var(--reboot-text) !important;
+}
+
+.login-form input::placeholder,
+input::placeholder,
+textarea::placeholder,
+.search::placeholder {
+  color: var(--reboot-text-soft) !important;
+}
+
+.login-form input:focus,
+input:focus,
+select:focus,
+textarea:focus,
+.search:focus {
+  outline: none !important;
+  border-color: color-mix(in srgb, var(--reboot-primary) 56%, var(--reboot-line)) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--reboot-primary) 16%, transparent) !important;
+}
+
+.login-btn,
+.cta-btn,
+.game-action-btn,
+.compare-stats-btn,
+.logout-btn,
+.view-all-btn,
+.btn-primary,
+.primary-btn {
+  border-radius: 10px !important;
+  border: 1px solid transparent !important;
+  color: #fff !important;
+  background: linear-gradient(120deg, var(--reboot-primary), var(--reboot-secondary)) !important;
+  box-shadow: 0 8px 16px rgba(11, 24, 46, 0.22) !important;
+}
+
+.btn-ghost,
+.ghost-btn {
+  background: var(--reboot-surface-2) !important;
+  border: 1px solid var(--reboot-line) !important;
+  color: var(--reboot-text) !important;
+}
+
+.btn-danger,
+.danger-btn {
+  background: linear-gradient(120deg, #d65a5a, #b74545) !important;
+  color: #fff !important;
+}
+
+.login-btn:hover,
+.cta-btn:hover,
+.game-action-btn:hover,
+.compare-stats-btn:hover,
+.logout-btn:hover,
+.view-all-btn:hover,
+.btn-primary:hover,
+.primary-btn:hover,
+.btn-ghost:hover,
+.ghost-btn:hover,
+.btn-danger:hover,
+.danger-btn:hover {
+  transform: translateY(-1px);
+}
+
+.bottom-nav {
+  border-top: 1px solid var(--reboot-line-strong) !important;
+  background: color-mix(in srgb, var(--reboot-bg-1) 84%, var(--reboot-surface-2)) !important;
+  box-shadow: 0 -8px 18px rgba(0, 0, 0, 0.16) !important;
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom)) !important;
+}
+
+.nav-btn {
+  border: 1px solid transparent !important;
+  border-radius: 10px !important;
+  color: var(--reboot-text-soft) !important;
+  background: transparent !important;
+}
+
+.nav-btn.active {
+  color: var(--reboot-text) !important;
+  border-color: var(--reboot-line-strong) !important;
+  background: color-mix(in srgb, var(--reboot-primary) 16%, transparent) !important;
+}
+
+.nav-btn:hover {
+  color: var(--reboot-text) !important;
+}
+
+.matchup-meter {
+  border: 1px solid var(--reboot-line) !important;
+  border-radius: 999px !important;
+  background: color-mix(in srgb, var(--reboot-surface-2) 88%, transparent) !important;
+}
+
+.matchup-meter-fill,
+.matchup-bar.your {
+  background: linear-gradient(120deg, var(--reboot-primary), color-mix(in srgb, var(--reboot-primary) 55%, white)) !important;
+}
+
+.matchup-bar.ai {
+  background: linear-gradient(120deg, var(--reboot-secondary), color-mix(in srgb, var(--reboot-secondary) 55%, white)) !important;
+}
+
+@media (max-width: 768px) {
+  .main-content,
+  .stats-main,
+  .settings-main {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}
+
+/* Final global font override (must be last) */
+html,
+body,
+#root,
+*,
+*::before,
+*::after,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+button,
+input,
+select,
+textarea,
+.page-logo,
+.page-title,
+.section-title,
+.selector-title,
+.settings-title,
+.app-title,
+.nav-btn,
+.player-name,
+.player-position,
+.stat-value-large,
+.stat-label-large,
+.stat-value-small,
+.stat-label-small {
+  font-family: "Bitcount Grid Double Ink", "Orbitron", "Teko", "Manrope", sans-serif !important;
 }
