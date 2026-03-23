@@ -993,6 +993,11 @@ const StatsPage = ({ onBack, onNavigate, authUser, onRosterSaved }) => {
                   whileHover={{ scale: 1.02 }}
                   onClick={() => openDetail(player)}
                 >
+                  <div
+                    className={`matchup-player-name-top stats-player-name-top ${inRoster ? 'is-roster' : isPending ? 'is-pending' : ''}`}
+                  >
+                    {player.player_name}
+                  </div>
                   <div className="player-avatar-section">
                     <div className="player-avatar-stats">
                       <div
@@ -1012,7 +1017,6 @@ const StatsPage = ({ onBack, onNavigate, authUser, onRosterSaved }) => {
                       </div>
                     </div>
                     <div className="player-info">
-                      <div className="player-name">{player.player_name}</div>
                       <div className="player-position">
                         {player.position} • {player.team}
                         {inRoster && <span style={{ marginLeft: 6, fontSize: '0.7rem', color: '#22c55e' }}>IN ROSTER</span>}
