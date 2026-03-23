@@ -101,12 +101,15 @@ def get_ai_team():
 
     team_df = pd.concat(team, ignore_index=True)
 
+    _POS_SHORT = {"Guard": "G", "Forward": "F", "Center": "C"}
+
     result = []
     for _, row in team_df.iterrows():
+        raw_pos = str(row["position"])
         result.append({
             "id": int(row["player_id"]),
             "name": str(row.get("player_name", "Unknown")),
-            "position": str(row["position"]),
+            "position": _POS_SHORT.get(raw_pos, raw_pos),
             "predicted_pts": round(float(row["predicted_fantasy_pts"]), 1),
             "pts": round(float(row.get("avg_points_last5", 0) or 0), 1),
             "reb": round(float(row.get("avg_rebounds_last5", 0) or 0), 1),

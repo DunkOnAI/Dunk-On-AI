@@ -612,8 +612,18 @@ const HomePage = ({ authUser, onLogout, onSettings, onNavigate }) => {
 const PAGE_SIZE = 8;
 
 const TEAM_LIMIT = 5;
+const POSITION_LIMITS = { G: 2, F: 2, C: 1 };
 
 // Player stats page — shows all players with stats, lets user tap to select then add to roster.
+const normalizePosition = (pos) => {
+  if (!pos) return '—';
+  const p = pos.toLowerCase();
+  if (p.startsWith('guard')) return 'G';
+  if (p.startsWith('forward')) return 'F';
+  if (p.startsWith('center')) return 'C';
+  return pos;
+};
+
 const StatsPage = ({ onBack, onNavigate, authUser, onRosterSaved }) => {
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -671,7 +681,7 @@ const StatsPage = ({ onBack, onNavigate, authUser, onRosterSaved }) => {
           return {
             player_id: player.id,
             player_name: player.name ?? 'Unknown',
-            position: player.position ?? '—',
+            position: normalizePosition(player.position),
             team: player.teams?.name ?? 'Unknown Team',
             games,
             pts: games ? (totals.pts / games).toFixed(1) : '—',
@@ -692,17 +702,17 @@ const StatsPage = ({ onBack, onNavigate, authUser, onRosterSaved }) => {
   const togglePending = (player) => {
     if (rosterIds.includes(player.player_id)) return;
     setSaveMessage('');
-    const rosterPositions = players.filter(p => rosterIds.includes(p.player_id)).map(p => p.position);
     setPendingIds((prev) => {
       if (prev.includes(player.player_id)) return prev.filter((id) => id !== player.player_id);
       if (rosterIds.length + prev.length >= TEAM_LIMIT) return prev;
-      if (rosterPositions.includes(player.position)) {
-        setSaveMessage(`${player.position} is already on your roster.`);
-        return prev;
-      }
-      const pendingPositions = players.filter(p => prev.includes(p.player_id)).map(p => p.position);
-      if (pendingPositions.includes(player.position)) {
-        setSaveMessage(`${player.position} is already selected.`);
+      const allPositions = [
+        ...players.filter(p => rosterIds.includes(p.player_id)).map(p => p.position),
+        ...players.filter(p => prev.includes(p.player_id)).map(p => p.position),
+      ];
+      const posCount = allPositions.filter(p => p === player.position).length;
+      const limit = POSITION_LIMITS[player.position] ?? 1;
+      if (posCount >= limit) {
+        setSaveMessage(`${player.position} slots are full (max ${limit}).`);
         return prev;
       }
       return [...prev, player.player_id];
@@ -733,12 +743,18 @@ const StatsPage = ({ onBack, onNavigate, authUser, onRosterSaved }) => {
       setDetailAddMessage('Roster is full (5 players max).');
       return;
     }
-    const rosterPositions = players.filter(p => rosterIds.includes(p.player_id)).map(p => p.position);
-    const pendingPositions = players.filter(p => pendingIds.includes(p.player_id)).map(p => p.position);
     const playerPosition = detailPlayer?.position;
-    if (playerPosition && (rosterPositions.includes(playerPosition) || pendingPositions.includes(playerPosition))) {
-      setDetailAddMessage(`${playerPosition} is already on your roster.`);
-      return;
+    if (playerPosition) {
+      const allPositions = [
+        ...players.filter(p => rosterIds.includes(p.player_id)).map(p => p.position),
+        ...players.filter(p => pendingIds.includes(p.player_id)).map(p => p.position),
+      ];
+      const posCount = allPositions.filter(p => p === playerPosition).length;
+      const limit = POSITION_LIMITS[playerPosition] ?? 1;
+      if (posCount >= limit) {
+        setDetailAddMessage(`${playerPosition} slots are full (max ${limit}).`);
+        return;
+      }
     }
     setDetailAdding(true);
     setDetailAddMessage('');
@@ -797,7 +813,8 @@ const StatsPage = ({ onBack, onNavigate, authUser, onRosterSaved }) => {
     const rosterFull = rosterIds.length >= TEAM_LIMIT;
     const detailRosterPositions = players.filter(p => rosterIds.includes(p.player_id)).map(p => p.position);
     const detailPendingPositions = players.filter(p => pendingIds.includes(p.player_id)).map(p => p.position);
-    const positionTaken = !inRoster && detailPlayer.position && (detailRosterPositions.includes(detailPlayer.position) || detailPendingPositions.includes(detailPlayer.position));
+    const detailPosCount = [...detailRosterPositions, ...detailPendingPositions].filter(p => p === detailPlayer.position).length;
+    const positionTaken = !inRoster && detailPlayer.position && detailPosCount >= (POSITION_LIMITS[detailPlayer.position] ?? 1);
     const addBtnLabel = inRoster ? '★ In Roster' : detailAdding ? '...' : rosterFull ? 'Roster Full' : positionTaken ? `${detailPlayer.position} Taken` : '+ Add to Roster';
     const addBtnStyle = inRoster
       ? { background: '#22c55e', color: '#000', borderColor: '#22c55e' }
@@ -941,14 +958,16 @@ const StatsPage = ({ onBack, onNavigate, authUser, onRosterSaved }) => {
               <p className="signed-in-label">No players found.</p>
             )}
             {(() => {
-              const takenPositions = new Set([
+              const allPositions = [
                 ...players.filter(p => rosterIds.includes(p.player_id)).map(p => p.position),
                 ...players.filter(p => pendingIds.includes(p.player_id)).map(p => p.position),
-              ]);
+              ];
+              const posCounts = {};
+              allPositions.forEach(p => { posCounts[p] = (posCounts[p] || 0) + 1; });
               return pagePlayers.map((player, index) => {
               const inRoster = rosterIds.includes(player.player_id);
               const isPending = pendingIds.includes(player.player_id);
-              const isPositionTaken = !inRoster && !isPending && takenPositions.has(player.position);
+              const isPositionTaken = !inRoster && !isPending && (posCounts[player.position] || 0) >= (POSITION_LIMITS[player.position] ?? 1);
               const cardStyle = inRoster
                 ? { border: '2px solid #22c55e', background: 'rgba(34,197,94,0.07)' }
                 : isPending
@@ -1581,7 +1600,7 @@ function App() {
         return {
           player_id: entry.player_id,
           player_name: entry.players?.name ?? 'Unknown',
-          position: entry.players?.position ?? '—',
+          position: normalizePosition(entry.players?.position),
           team: entry.players?.teams?.name ?? 'Unknown Team',
           team_abbreviation: entry.players?.teams?.abbreviation ?? '',
           role: entry.role,
