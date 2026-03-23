@@ -6,7 +6,7 @@ A fantasy basketball web app where users build a team and compete against an AI 
 
 | Layer    | Technology                              |
 | -------- | --------------------------------------- |
-| Frontend | React 18 + Vite + Framer Motion         |
+| Frontend | React 18 + Vite + Framer Motion + Barlow font |
 | Backend  | Python + Flask                          |
 | Auth     | Supabase Auth (email/password)          |
 | Database | Supabase (PostgreSQL via PostgREST API) |
@@ -238,6 +238,13 @@ Basketball-Fantasy-Helper/
 - Players with a full position slot appear dimmed in the player list.
 - The detail page add button shows `[POS] Slots are full` and is disabled when the slot is filled.
 - Match history is saved per-user in Supabase — each account has its own game history.
+- Player positions are normalised to short form (`G`, `F`, `C`) on load to match the AI team's position format.
+
+## UI Notes
+
+- Font: **Barlow** (Google Fonts) — clean, modern, sporty. Loaded via CDN import in `index.css`.
+- Both light (beige) and dark themes are supported, toggled from the Profile/Settings page.
+- The AI team endpoint uses weighted random sampling from the top 10 predicted players per position, so the AI lineup varies each game.
 
 ## Adding New Routes
 
