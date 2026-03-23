@@ -1288,10 +1288,10 @@ const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification, roster, 
                   whileHover={{ scale: 1.02 }}
                   onClick={() => { setHighlightedRosterId((prev) => prev === player.player_id ? null : player.player_id); setRemoveMessage(''); }}
                 >
+                  <div className="matchup-player-name-top">{player.player_name}</div>
                   <div className="matchup-ai-left">
                     <span className="matchup-ai-number" style={isHighlighted ? { color: '#f87171' } : {}}>{isHighlighted ? '×' : player.position}</span>
                     <div>
-                      <div className="player-name">{player.player_name}</div>
                       <div className="player-position">{player.team}</div>
                     </div>
                   </div>
@@ -1313,10 +1313,10 @@ const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification, roster, 
               <p style={{ color: 'var(--text-secondary)', padding: '12px 0' }}>Loading AI team...</p>
             ) : aiPlayers.map((player) => (
               <div key={player.id} className="matchup-ai-item">
+                <div className="matchup-player-name-top">{player.name}</div>
                 <div className="matchup-ai-left">
                   <span className="matchup-ai-number">{player.number != null ? `#${player.number}` : player.position}</span>
                   <div>
-                    <div className="player-name">{player.name}</div>
                     <div className="player-position">{player.position}</div>
                   </div>
                 </div>
