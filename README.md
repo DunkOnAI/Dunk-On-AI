@@ -1,6 +1,6 @@
 # Dunk On AI — Fantasy Basketball App
 
-A fantasy basketball web app where users build a team and compete against AI opponents.
+A fantasy basketball web app where users build a team and compete against an AI opponent powered by a Random Forest model trained on real NBA data.
 
 ## Tech Stack
 
@@ -10,6 +10,7 @@ A fantasy basketball web app where users build a team and compete against AI opp
 | Backend  | Python + Flask                          |
 | Auth     | Supabase Auth (email/password)          |
 | Database | Supabase (PostgreSQL via PostgREST API) |
+| AI Model | scikit-learn Random Forest Regressor    |
 
 All database access goes through the **Supabase PostgREST HTTP API** — no raw database connection string is needed.
 
@@ -34,7 +35,7 @@ Keep `.env` out of git — it's already in `.gitignore`.
 python -m venv venv
 venv\Scripts\activate
 pip install -r Backend\requirements.txt
-flask --app "Backend:create_app" run --debug
+flask --app Fantasy_Basketball run --debug
 ```
 
 Flask starts on `http://127.0.0.1:5000`.
@@ -45,13 +46,19 @@ Quick backend smoke test:
 bash Backend/smoke_test_backend.sh
 ```
 
-If your backend runs on a different port:
+### 3. AI Data Pipeline (required before first run)
+
+Run these in order from `AI-Prod/data_colection/`:
 
 ```bash
-BASE_URL=http://127.0.0.1:5001 bash Backend/smoke_test_backend.sh
+python get_players.py
+python get_player_stats.py
+python build_training_ready_data.py
 ```
 
-### 3. Frontend (React + Vite)
+This generates `players.csv` and `master_training.csv` which the AI team endpoint reads at runtime. Without these files the matchup page falls back to mock player data.
+
+### 4. Frontend (React + Vite)
 
 ```bash
 cd Frontend
@@ -60,6 +67,15 @@ npm run dev
 ```
 
 Vite starts on `http://localhost:5173` and proxies all `/api/*` requests to Flask automatically.
+
+---
+
+## How It Works
+
+1. User builds a roster of **5 players** (2 Guards, 2 Forwards, 1 Center) from the Stats page.
+2. On the Matchup page, the Flask backend runs three Random Forest models (one per position group) against recent NBA stats to pick the AI's optimal 5-player lineup.
+3. Both teams are scored using a weighted formula: `PTS × 3.3 + AST × 1.6 + REB × 0.8` with a small random variance.
+4. The result is saved to Supabase and shown on the Home page with full player snapshots for both teams.
 
 ---
 
@@ -131,25 +147,42 @@ All roster endpoints are scoped to a user via `<user_id>` (the `id` from the use
 { "player_id": 123, "role": "starter" }
 ```
 
-**Update role body:**
+**Roster constraints:** max 5 players — 2 Guards (G), 2 Forwards (F), 1 Center (C).
+
+### Matchup
+
+| Method | Endpoint             | Description                                              |
+| ------ | -------------------- | -------------------------------------------------------- |
+| GET    | `/matchup/ai-team`   | Returns AI's predicted 5-player lineup using ML models   |
+
+**Response:**
 
 ```json
-{ "role": "bench" }
+{
+  "team": [
+    { "id": 1, "name": "Player Name", "position": "G", "predicted_pts": 48.2, "pts": 27.1, "reb": 4.0, "ast": 7.5 }
+  ]
+}
 ```
 
-**Swap body:**
+### Match History
+
+| Method | Endpoint                              | Description                              |
+| ------ | ------------------------------------- | ---------------------------------------- |
+| GET    | `/users/<user_id>/match-history`      | Get last 20 games for a user             |
+| POST   | `/users/<user_id>/match-history`      | Save a completed match result            |
+
+**Save body:**
 
 ```json
-{ "player_1_id": 1, "player_2_id": 2 }
+{
+  "yourScore": 142,
+  "aiScore": 135,
+  "winner": "you",
+  "yourPlayers": [{ "name": "...", "position": "G", "pts": 27.1, "reb": 4.0, "ast": 7.5 }],
+  "aiPlayers":   [{ "name": "...", "position": "G", "pts": 28.2, "reb": 4.0, "ast": 8.0 }]
+}
 ```
-
-**Bulk add body:**
-
-```json
-{ "players": [{ "player_id": 1, "role": "starter" }, { "player_id": 2 }] }
-```
-
-**Roster constraints:** max 5 players total, one per position (PG, SG, SF, PF, C).
 
 ---
 
@@ -158,48 +191,57 @@ All roster endpoints are scoped to a user via `<user_id>` (the `id` from the use
 ```
 Basketball-Fantasy-Helper/
 ├── Backend/
-│   ├── __init__.py          # Flask app factory, blueprint registration
-│   ├── auth_routes.py       # POST /api/auth/signup, /api/auth/login
-│   ├── roster_routes.py     # Roster CRUD endpoints
-│   ├── routes.py            # Health check endpoints
-│   ├── models.py            # SQLAlchemy models (schema reference, not used for queries)
-│   ├── supabaseclient.py    # Cached Supabase client (reads SUPABASE_URL + KEY from env)
-│   ├── constants.py         # Roster limits, error codes, valid roles
+│   ├── __init__.py              # Flask app factory, blueprint registration
+│   ├── auth_routes.py           # POST /api/auth/signup, /api/auth/login
+│   ├── roster_routes.py         # Roster CRUD endpoints
+│   ├── matchup_routes.py        # GET /api/matchup/ai-team (ML prediction)
+│   ├── match_history_routes.py  # GET/POST /api/users/<id>/match-history
+│   ├── routes.py                # Health check endpoints
+│   ├── models.py                # SQLAlchemy models (schema reference)
+│   ├── supabaseclient.py        # Cached Supabase client
+│   ├── constants.py             # Roster limits, error codes, valid roles
 │   └── utils/
-│       ├── validators.py    # Input validation and existence checks via Supabase API
-│       ├── serializers.py   # Convert Supabase dicts to API response format
-│       └── errors.py        # Standardized error response helpers
+│       ├── validators.py        # Input validation via Supabase API
+│       ├── serializers.py       # Convert Supabase dicts to API response format
+│       └── errors.py            # Standardized error response helpers
+├── AI-Prod/
+│   ├── data_colection/
+│   │   ├── get_players.py               # Fetches player list from NBA API
+│   │   ├── get_player_stats.py          # Fetches per-game stats
+│   │   ├── build_training_ready_data.py # Builds master_training.csv
+│   │   └── data/
+│   │       ├── raw/players.csv          # Generated by get_players.py
+│   │       └── processed/master_training.csv  # Generated by build step
+│   └── training/
+│       ├── train_model.py       # Trains Random Forest models per position group
+│       ├── build_team.py        # Standalone team builder (used by Flask endpoint)
+│       ├── model_guard.pkl      # Trained model for Guards
+│       ├── model_forward.pkl    # Trained model for Forwards
+│       └── model_center.pkl     # Trained model for Centers
 ├── Frontend/
 │   ├── src/
-│   │   ├── App.jsx          # All React components and routing
-│   │   └── index.css        # All styles
-│   ├── vite.config.js       # Dev server + /api proxy to Flask
+│   │   ├── App.jsx              # All React components and routing
+│   │   └── index.css            # All styles
+│   ├── vite.config.js           # Dev server + /api proxy to Flask
 │   └── package.json
-├── .env                     # Supabase credentials (never commit this)
+├── Fantasy_Basketball.py        # Flask entry point (flask --app Fantasy_Basketball run)
+├── .env                         # Supabase credentials (never commit this)
 └── README.md
 ```
 
 ---
 
+## Frontend Roster Rules
+
+- Roster is capped at **5 players**: 2 G, 2 F, 1 C.
+- Selecting a player whose position slot is full (saved or pending) is blocked with an error message.
+- Players with a full position slot appear dimmed in the player list.
+- The detail page add button shows `[POS] Slots are full` and is disabled when the slot is filled.
+- Match history is saved per-user in Supabase — each account has its own game history.
+
 ## Adding New Routes
 
-1. Create a new file e.g. `Backend/matchup_routes.py` with a `Blueprint`
+1. Create a new file e.g. `Backend/new_routes.py` with a `Blueprint`
 2. Register it in `Backend/__init__.py` inside `create_app`
 3. Get the Supabase client at the top of each endpoint with `client = get_supabase_client()`
 4. Use `client.table("your_table").select/insert/update/delete(...)` for all DB access
-
-## Frontend Roster Rules
-
-- Roster is capped at **5 players**, one per position.
-- Selecting a player whose position is already on the roster (saved or pending) is blocked with an error message.
-- Players with a taken position appear dimmed in the player list.
-- The detail page add button shows `[POS] Taken` and is disabled when the position is already filled.
-
-## Backend Status
-
-Current backend integration pass is complete:
-
-- auth endpoints working (`/api/auth/signup`, `/api/auth/login`)
-- roster endpoints validated + bulk add checks improved
-- Supabase env loading integrated for local `.env` usage
-- backend smoke test script added (`Backend/smoke_test_backend.sh`)
