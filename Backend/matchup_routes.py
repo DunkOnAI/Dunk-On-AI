@@ -89,11 +89,11 @@ def get_ai_team():
 
         pos_df["predicted_fantasy_pts"] = model.predict(pos_df[FEATURE_COLS])
 
-        # Sample from the top 10 using predicted score as weight so the AI
-        # varies each game but still favours better players.
-        candidates = pos_df.sort_values("predicted_fantasy_pts", ascending=False).head(10)
-        weights = candidates["predicted_fantasy_pts"].clip(lower=0.1)
-        top = candidates.sample(n=min(slots, len(candidates)), weights=weights, replace=False)
+        top = (
+            pos_df
+            .sort_values("predicted_fantasy_pts", ascending=False)
+            .head(slots)
+        )
         team.append(top)
 
     if not team:
