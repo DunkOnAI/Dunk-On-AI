@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from './supabaseClient';
 import './index.css';
 
+const API_BASE = import.meta.env.VITE_API_URL ?? '';
+
 const SESSION_STORAGE_KEY = 'dunk_on_ai_session';
 const LAST_ACTIVITY_KEY = 'dunk_on_ai_last_activity';
 const THEME_STORAGE_KEY = 'dunk_on_ai_theme';
@@ -159,7 +161,7 @@ const LoginPage = ({ onLogin, onGoToSignup }) => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`${API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -259,7 +261,7 @@ const SignupPage = ({ onSignup, onGoToLogin }) => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/auth/signup', {
+      const response = await fetch(`${API_BASE}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -372,7 +374,7 @@ const HomePage = ({ authUser, onLogout, onSettings, onNavigate }) => {
   useEffect(() => {
     if (!authUser?.id) return;
     setHistoryLoading(true);
-    fetch(`/api/users/${authUser.id}/match-history`)
+    fetch(`${API_BASE}/api/users/${authUser.id}/match-history`)
       .then(r => r.ok ? r.json() : Promise.reject(r.status))
       .then(data => setMatchHistory(data.games || []))
       .catch(() => setMatchHistory([]))
@@ -1125,7 +1127,7 @@ const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification, roster, 
   const fetchAiTeam = async () => {
     setAiLoading(true);
     try {
-      const res = await fetch(`/api/matchup/ai-team?ts=${Date.now()}`, { cache: 'no-store' });
+      const res = await fetch(`${API_BASE}/api/matchup/ai-team?ts=${Date.now()}`, { cache: 'no-store' });
       if (!res.ok) throw new Error('API unavailable');
       const data = await res.json();
       if (data.team && data.team.length > 0) {
@@ -1177,38 +1179,51 @@ const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification, roster, 
   const aiTeamStats = summarizeTeam(aiPlayers);
   const winChance = Math.max(20, Math.min(80, Math.round(50 + (yourTeamStats.power - aiTeamStats.power) * 1.4)));
 
-  const runSimulation = () => {
-    if (roster.length === 0) return;
-    const nextAiStats = summarizeTeam(aiPlayers);
-    const nextWinChance = Math.max(20, Math.min(80, Math.round(50 + (yourTeamStats.power - nextAiStats.power) * 1.4)));
-    const userWon = Math.random() <= nextWinChance / 100;
-    const yourScore = Math.round(yourTeamStats.pts * 3.3 + yourTeamStats.ast * 1.6 + yourTeamStats.reb * 0.8)
-      + Math.round((Math.random() - 0.5) * 16) + (userWon ? 4 : -2);
-    const aiScore = Math.round(nextAiStats.pts * 3.3 + nextAiStats.ast * 1.6 + nextAiStats.reb * 0.8)
-      + Math.round((Math.random() - 0.5) * 16) + (userWon ? -2 : 4);
-    const winner = yourScore >= aiScore ? 'you' : 'ai';
-    setSimulation({ yourScore, aiScore, winner });
-    const yourPlayerSnap = roster.map(p => ({ name: p.player_name, position: p.position, pts: p.pts, reb: p.reb, ast: p.ast }));
-    const aiPlayerSnap = aiPlayers.map(p => ({ name: p.name, position: p.position, pts: p.pts, reb: p.reb, ast: p.ast }));
-    if (authUser?.id) {
-      fetch(`/api/users/${authUser.id}/match-history`, {
+  const [simulating, setSimulating] = useState(false);
+
+  const runSimulation = async () => {
+    if (roster.length === 0 || simulating) return;
+    setSimulating(true);
+    try {
+      const rosterPayload = roster.map(p => ({
+        name: p.player_name,
+        position: p.position,
+        pts: p.pts,
+        reb: p.reb,
+        ast: p.ast,
+      }));
+      const res = await fetch(`${API_BASE}/api/matchup/simulate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ yourScore, aiScore, winner, yourPlayers: yourPlayerSnap, aiPlayers: aiPlayerSnap }),
-      })
-        .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); })
-        .catch(err => console.error('Failed to save match:', err));
-    }
-    if (onNewNotification) {
-      onNewNotification({
-        id: `match-${Date.now()}`,
-        type: 'match_result',
-        title: yourScore >= aiScore ? 'Match Won' : 'Match Lost',
-        message: `Final score: You ${yourScore} - ${aiScore} AI Titans`,
-        createdAt: new Date().toISOString(),
+        body: JSON.stringify({ roster: rosterPayload }),
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const result = await res.json();
+      const { yourScore, aiScore, winner, yourPlayers, aiPlayers: aiPlayersResult } = result;
+      setSimulation({ yourScore, aiScore, winner });
+      if (aiPlayersResult?.length) setAiPlayers(aiPlayersResult);
+      if (authUser?.id) {
+        fetch(`${API_BASE}/api/users/${authUser.id}/match-history`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ yourScore, aiScore, winner, yourPlayers, aiPlayers: aiPlayersResult }),
+        }).catch(err => console.error('Failed to save match:', err));
+      }
+      if (onNewNotification) {
+        onNewNotification({
+          id: `match-${Date.now()}`,
+          type: 'match_result',
+          title: winner === 'you' ? 'Match Won' : 'Match Lost',
+          message: `Final score: You ${yourScore} - ${aiScore} AI Titans`,
+          createdAt: new Date().toISOString(),
+        });
+      }
+      setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 20);
+    } catch (err) {
+      console.error('Simulation failed:', err);
+    } finally {
+      setSimulating(false);
     }
-    setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 20);
   };
 
   const statRows = [
@@ -1233,9 +1248,9 @@ const MatchupPage = ({ onBack, onNavigate, authUser, onNewNotification, roster, 
               onClick={() => { setSimulation(null); fetchAiTeam(); }} disabled={aiLoading}>
               {aiLoading ? '...' : 'New AI'}
             </button>
-            <button className="view-all-btn" style={{ fontSize: '0.75rem', padding: '5px 10px' }}
-              onClick={runSimulation} disabled={roster.length === 0}>
-              Simulate
+            <button className="view-all-btn" style={{ fontSize: '0.75rem', padding: '5px 10px', opacity: (roster.length === 0 || simulating) ? 0.5 : 1 }}
+              onClick={runSimulation} disabled={roster.length === 0 || simulating}>
+              {simulating ? 'Simulating...' : 'Simulate'}
             </button>
           </div>
         </div>
